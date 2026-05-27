@@ -43,7 +43,6 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
     # Ensure values are within 0-1 range
     return (max(0.0, min(1.0, R)), max(0.0, min(1.0, G)), max(0.0, min(1.0, B)))
 
-
 def plot_emission_spectrum(
     data_df,
     nm_col='nm',
@@ -86,6 +85,7 @@ def plot_emission_spectrum(
 
     # Create the plot (use explicit Figure/Axis to avoid side-effects)
     fig, ax = plt.subplots(figsize=fig_size)
+    ax = plt.gca() # Get current axes
 
     # Set figure background and text colors based on mode
     if mode == 'dark':
@@ -97,8 +97,8 @@ def plot_emission_spectrum(
         text_color = 'black'
         grid_color = 'lightgrey'
 
-    fig.set_facecolor(figure_bg_color)
-    ax.set_facecolor('black')
+    plt.gcf().set_facecolor(figure_bg_color) # Set figure background color
+    ax.set_facecolor('black') # Always keep the spectrum plot area (axes) background black
 
     # Remove Y-axis completely as intensity is shown by brightness/color
     ax.yaxis.set_visible(False)
@@ -161,54 +161,57 @@ def plot_emission_spectrum(
         glow_current_widths_nm = scaled_max_width_nm * glow_width_multiplier * width_profile_factor
         glow_x_left = peak_nm - glow_current_widths_nm / 2
         glow_x_right = peak_nm + glow_current_widths_nm / 2
-        ax.fill_betweenx(
-            y_coords_render,
-            glow_x_left,
-            glow_x_right,
-            facecolor=colored_rgb,
-            alpha=glow_alpha,
-            edgecolor='none',
-            linewidth=0,
-            antialiased=False,
-            zorder=1,
-        )
+        ax.fill_betweenx(y_coords_render, glow_x_left, glow_x_right, facecolor=colored_rgb, alpha=glow_alpha)
 
         # --- Plot the main NEEDLE on top of the glow ---
         current_widths_nm = scaled_max_width_nm * width_profile_factor
         x_left = peak_nm - current_widths_nm / 2
         x_right = peak_nm + current_widths_nm / 2
-        ax.fill_betweenx(
-            y_coords_render,
-            x_left,
-            x_right,
-            facecolor=colored_rgb,
-            edgecolor='none',
-            linewidth=0,
-            antialiased=False,
-            zorder=2,
-        )
+        ax.fill_betweenx(y_coords_render, x_left, x_right, facecolor=colored_rgb)
 
         # Add text label for the peak wavelength with rotation, always white
-        ax.text(
-            peak_nm,
-            peak_label_y_position,
-            f'{peak_nm:.2f}',
-            color='white',
-            ha='center',
-            va='bottom',
-            fontsize=8,
-            rotation=60,
-            rotation_mode='anchor',
-        )
-
-    fig.suptitle(f'Traditional Emission Spectrum Visualization ({mode.capitalize()} Mode)', color=text_color, y=1.0, va='top')
-    ax.set_title('')
+        ax.text(peak_nm, peak_label_y_position, f'{peak_nm:.2f}',
+                color='white', ha='center', va='bottom', fontsize=8,
+                rotation=60, rotation_mode='anchor')
+        
+    plt.title(f'Traditional Emission Spectrum Visualization ({mode.capitalize()} Mode)', color=text_color, y=1.0, pad=10) # Raised title with y parameter
     if show_grid:
-        ax.grid(True, color=grid_color, linestyle=':', linewidth=0.5)
+        plt.grid(True, color=grid_color, linestyle=':', linewidth=0.5) # Grid color based on mode
 
     # Save the plot if a save_path is provided
     if save_path:
-        fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi, transparent=False)
+        plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
+        print(f"Plot saved to {save_path}")
+        print(f"[Download Image]({save_path})")
 
-    # Return the Figure to the caller; caller should save/close it.
+    plt.show()
+
+    print(f"This {mode} mode visualization shows the emission spectrum as a horizontal bar with sharp, distinct vertical lines.\n")
+    print("Each line's color is determined by its wavelength, and its brightness and thickness reflect the intensity at that point, and its height is uniformly set by the 'max_needle_y_scale' parameter, against a black background.")
+    if mode == 'dark':
+        print("The overall figure and text are optimized for a dark theme.")
+    else:
+        print("The overall figure and text are optimized for a light theme.")
+
+
+def plot_emission_spectrum_colab_style(*args, save_path=None, headless=True, dpi=300, **kwargs):
+    import matplotlib
+    if headless:
+        matplotlib.use('Agg')      # Switch to non-interactive backend for safe saving
+    import matplotlib.pyplot as plt
+
+    # Call your notebook function (keeps notebook behavior)
+    fig = plot_emission_spectrum(*args, **kwargs)
+
+    # If the notebook version already saved to save_path internally, this will overwrite harmlessly;
+    # otherwise save the current figure.
+    if save_path:
+        try:
+            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
+        except Exception:
+            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
+
+    if headless:
+        plt.close('all')
+
     return fig
