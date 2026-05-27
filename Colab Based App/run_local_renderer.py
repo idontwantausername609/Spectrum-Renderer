@@ -11,7 +11,7 @@ if str(p) not in sys.path:
     sys.path.insert(0, str(p))
 
 def main():
-    inp = p / 'he test.xlsx'
+    inp = p / 'oxygen nist 2.xlsx'
     if not inp.exists():
         raise SystemExit(f'Missing input workbook: {inp}')
 
