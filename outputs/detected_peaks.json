@@ -1,0 +1,327 @@
+[
+  {
+    "index": 499,
+    "wavelength_nm": 442.64957264957263,
+    "intensity": 84.00885293357894
+  },
+  {
+    "index": 512,
+    "wavelength_nm": 443.7606837606838,
+    "intensity": 96.19781175472264
+  },
+  {
+    "index": 525,
+    "wavelength_nm": 444.87179487179486,
+    "intensity": 102.65505999766879
+  },
+  {
+    "index": 538,
+    "wavelength_nm": 445.982905982906,
+    "intensity": 106.50999766139289
+  },
+  {
+    "index": 551,
+    "wavelength_nm": 447.0940170940171,
+    "intensity": 101.30593600709663
+  },
+  {
+    "index": 565,
+    "wavelength_nm": 448.29059829059827,
+    "intensity": 99.01463640141522
+  },
+  {
+    "index": 578,
+    "wavelength_nm": 449.4017094017094,
+    "intensity": 88.38570499937651
+  },
+  {
+    "index": 802,
+    "wavelength_nm": 468.54700854700855,
+    "intensity": 77.88012545245407
+  },
+  {
+    "index": 815,
+    "wavelength_nm": 469.65811965811963,
+    "intensity": 97.95336474797237
+  },
+  {
+    "index": 828,
+    "wavelength_nm": 470.7692307692308,
+    "intensity": 103.1149048512364
+  },
+  {
+    "index": 841,
+    "wavelength_nm": 471.8803418803419,
+    "intensity": 95.67909979645356
+  },
+  {
+    "index": 854,
+    "wavelength_nm": 472.991452991453,
+    "intensity": 69.98129349328586
+  },
+  {
+    "index": 1052,
+    "wavelength_nm": 489.9145299145299,
+    "intensity": 89.7046038243278
+  },
+  {
+    "index": 1065,
+    "wavelength_nm": 491.025641025641,
+    "intensity": 138.3695439795113
+  },
+  {
+    "index": 1078,
+    "wavelength_nm": 492.13675213675214,
+    "intensity": 142.63505785023696
+  },
+  {
+    "index": 1092,
+    "wavelength_nm": 493.3333333333333,
+    "intensity": 126.71044686268466
+  },
+  {
+    "index": 1105,
+    "wavelength_nm": 494.44444444444446,
+    "intensity": 78.9585490819973
+  },
+  {
+    "index": 1158,
+    "wavelength_nm": 498.974358974359,
+    "intensity": 95.25899626713603
+  },
+  {
+    "index": 1171,
+    "wavelength_nm": 500.0854700854701,
+    "intensity": 147.63813870029372
+  },
+  {
+    "index": 1184,
+    "wavelength_nm": 501.1965811965812,
+    "intensity": 186.8387639745984
+  },
+  {
+    "index": 1197,
+    "wavelength_nm": 502.3076923076923,
+    "intensity": 195.5644821720352
+  },
+  {
+    "index": 1210,
+    "wavelength_nm": 503.4188034188034,
+    "intensity": 169.04590535334506
+  },
+  {
+    "index": 1223,
+    "wavelength_nm": 504.52991452991455,
+    "intensity": 134.44490478816715
+  },
+  {
+    "index": 1237,
+    "wavelength_nm": 505.7264957264957,
+    "intensity": 94.92797555771588
+  },
+  {
+    "index": 1250,
+    "wavelength_nm": 506.8376068376068,
+    "intensity": 73.59382288279652
+  },
+  {
+    "index": 2014,
+    "wavelength_nm": 572.1367521367522,
+    "intensity": 69.22417565646866
+  },
+  {
+    "index": 2027,
+    "wavelength_nm": 573.2478632478633,
+    "intensity": 70.99854962000667
+  },
+  {
+    "index": 2040,
+    "wavelength_nm": 574.3589743589744,
+    "intensity": 70.8148194524251
+  },
+  {
+    "index": 2054,
+    "wavelength_nm": 575.5555555555555,
+    "intensity": 73.90689129163825
+  },
+  {
+    "index": 2067,
+    "wavelength_nm": 576.6666666666666,
+    "intensity": 74.84636076856843
+  },
+  {
+    "index": 2080,
+    "wavelength_nm": 577.7777777777778,
+    "intensity": 76.79228264704574
+  },
+  {
+    "index": 2093,
+    "wavelength_nm": 578.8888888888889,
+    "intensity": 84.24943114918597
+  },
+  {
+    "index": 2106,
+    "wavelength_nm": 580.0,
+    "intensity": 94.17660179048029
+  },
+  {
+    "index": 2119,
+    "wavelength_nm": 581.1111111111111,
+    "intensity": 93.70764399642094
+  },
+  {
+    "index": 2133,
+    "wavelength_nm": 582.3076923076924,
+    "intensity": 89.33075295012492
+  },
+  {
+    "index": 2146,
+    "wavelength_nm": 583.4188034188035,
+    "intensity": 139.29279079961645
+  },
+  {
+    "index": 2159,
+    "wavelength_nm": 584.5299145299145,
+    "intensity": 218.24908867094894
+  },
+  {
+    "index": 2172,
+    "wavelength_nm": 585.6410256410256,
+    "intensity": 251.6641199719621
+  },
+  {
+    "index": 2185,
+    "wavelength_nm": 586.7521367521367,
+    "intensity": 244.98643578785837
+  },
+  {
+    "index": 2199,
+    "wavelength_nm": 587.948717948718,
+    "intensity": 244.04085331343438
+  },
+  {
+    "index": 2212,
+    "wavelength_nm": 589.0598290598291,
+    "intensity": 257.4660726450474
+  },
+  {
+    "index": 2225,
+    "wavelength_nm": 590.1709401709402,
+    "intensity": 253.01753156846556
+  },
+  {
+    "index": 2238,
+    "wavelength_nm": 591.2820512820513,
+    "intensity": 251.2225605224379
+  },
+  {
+    "index": 2251,
+    "wavelength_nm": 592.3931623931624,
+    "intensity": 214.76281411824553
+  },
+  {
+    "index": 2264,
+    "wavelength_nm": 593.5042735042734,
+    "intensity": 171.89217857831045
+  },
+  {
+    "index": 2278,
+    "wavelength_nm": 594.7008547008547,
+    "intensity": 110.68888680799611
+  },
+  {
+    "index": 2291,
+    "wavelength_nm": 595.8119658119658,
+    "intensity": 97.97620708182357
+  },
+  {
+    "index": 2304,
+    "wavelength_nm": 596.9230769230769,
+    "intensity": 99.21126374406478
+  },
+  {
+    "index": 2317,
+    "wavelength_nm": 598.034188034188,
+    "intensity": 96.83619111578628
+  },
+  {
+    "index": 2330,
+    "wavelength_nm": 599.1452991452992,
+    "intensity": 92.4086124963322
+  },
+  {
+    "index": 2344,
+    "wavelength_nm": 600.3418803418804,
+    "intensity": 79.45944316135943
+  },
+  {
+    "index": 2357,
+    "wavelength_nm": 601.4529914529915,
+    "intensity": 78.80270497614977
+  },
+  {
+    "index": 2370,
+    "wavelength_nm": 602.5641025641025,
+    "intensity": 76.99454743285585
+  },
+  {
+    "index": 2383,
+    "wavelength_nm": 603.6752136752136,
+    "intensity": 79.66943632185625
+  },
+  {
+    "index": 2396,
+    "wavelength_nm": 604.7863247863248,
+    "intensity": 73.3207648262137
+  },
+  {
+    "index": 3108,
+    "wavelength_nm": 665.6410256410256,
+    "intensity": 102.60961806272131
+  },
+  {
+    "index": 3121,
+    "wavelength_nm": 666.7521367521367,
+    "intensity": 171.53816270422942
+  },
+  {
+    "index": 3134,
+    "wavelength_nm": 667.8632478632478,
+    "intensity": 207.29148016225983
+  },
+  {
+    "index": 3147,
+    "wavelength_nm": 668.974358974359,
+    "intensity": 206.79416890130972
+  },
+  {
+    "index": 3160,
+    "wavelength_nm": 670.0854700854701,
+    "intensity": 187.6378002646261
+  },
+  {
+    "index": 3174,
+    "wavelength_nm": 671.2820512820513,
+    "intensity": 149.23548798092276
+  },
+  {
+    "index": 3187,
+    "wavelength_nm": 672.3931623931624,
+    "intensity": 98.55398186305358
+  },
+  {
+    "index": 3582,
+    "wavelength_nm": 706.1538461538462,
+    "intensity": 100.211906726677
+  },
+  {
+    "index": 3595,
+    "wavelength_nm": 707.2649572649573,
+    "intensity": 105.79806637648252
+  },
+  {
+    "index": 3609,
+    "wavelength_nm": 708.4615384615385,
+    "intensity": 86.44345027317331
+  }
+]

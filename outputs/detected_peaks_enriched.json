@@ -1,0 +1,587 @@
+[
+  {
+    "det_index": 499,
+    "det_wavelength_nm": 442.64957264957263,
+    "det_intensity": 84.00885293357894,
+    "input_index": 308,
+    "input_wavelength_nm": 442.62320999999974,
+    "input_intensity": 123.448,
+    "delta_nm": 0.026362649572888586
+  },
+  {
+    "det_index": 512,
+    "det_wavelength_nm": 443.7606837606838,
+    "det_intensity": 96.19781175472264,
+    "input_index": 307,
+    "input_wavelength_nm": 443.74946999999975,
+    "input_intensity": 131.83,
+    "delta_nm": 0.01121376068402924
+  },
+  {
+    "det_index": 525,
+    "det_wavelength_nm": 444.87179487179486,
+    "det_intensity": 102.65505999766879,
+    "input_index": 306,
+    "input_wavelength_nm": 444.87572999999975,
+    "input_intensity": 136.789,
+    "delta_nm": -0.003935128204886951
+  },
+  {
+    "det_index": 538,
+    "det_wavelength_nm": 445.982905982906,
+    "det_intensity": 106.50999766139289,
+    "input_index": 305,
+    "input_wavelength_nm": 446.00198999999975,
+    "input_intensity": 141.615,
+    "delta_nm": -0.019084017093746297
+  },
+  {
+    "det_index": 551,
+    "det_wavelength_nm": 447.0940170940171,
+    "det_intensity": 101.30593600709663,
+    "input_index": 304,
+    "input_wavelength_nm": 447.12824999999975,
+    "input_intensity": 140.996,
+    "delta_nm": -0.03423290598266249
+  },
+  {
+    "det_index": 565,
+    "det_wavelength_nm": 448.29059829059827,
+    "det_intensity": 99.01463640141522,
+    "input_index": 303,
+    "input_wavelength_nm": 448.25450999999975,
+    "input_intensity": 139.6,
+    "delta_nm": 0.036088290598513595
+  },
+  {
+    "det_index": 578,
+    "det_wavelength_nm": 449.4017094017094,
+    "det_intensity": 88.38570499937651,
+    "input_index": 302,
+    "input_wavelength_nm": 449.38076999999976,
+    "input_intensity": 126.344,
+    "delta_nm": 0.02093940170965425
+  },
+  {
+    "det_index": 802,
+    "det_wavelength_nm": 468.54700854700855,
+    "det_intensity": 77.88012545245407,
+    "input_index": 285,
+    "input_wavelength_nm": 468.5271899999998,
+    "input_intensity": 116.559,
+    "delta_nm": 0.01981854700875374
+  },
+  {
+    "det_index": 815,
+    "det_wavelength_nm": 469.65811965811963,
+    "det_intensity": 97.95336474797237,
+    "input_index": 284,
+    "input_wavelength_nm": 469.6534499999998,
+    "input_intensity": 132.867,
+    "delta_nm": 0.00466965811983755
+  },
+  {
+    "det_index": 828,
+    "det_wavelength_nm": 470.7692307692308,
+    "det_intensity": 103.1149048512364,
+    "input_index": 283,
+    "input_wavelength_nm": 470.7797099999998,
+    "input_intensity": 137.604,
+    "delta_nm": -0.010479230769021797
+  },
+  {
+    "det_index": 841,
+    "det_wavelength_nm": 471.8803418803419,
+    "det_intensity": 95.67909979645356,
+    "input_index": 282,
+    "input_wavelength_nm": 471.9059699999998,
+    "input_intensity": 133.733,
+    "delta_nm": -0.025628119657881143
+  },
+  {
+    "det_index": 854,
+    "det_wavelength_nm": 472.991452991453,
+    "det_intensity": 69.98129349328586,
+    "input_index": 281,
+    "input_wavelength_nm": 473.0322299999998,
+    "input_intensity": 113.737,
+    "delta_nm": -0.04077700854679733
+  },
+  {
+    "det_index": 1052,
+    "det_wavelength_nm": 489.9145299145299,
+    "det_intensity": 89.7046038243278,
+    "input_index": 266,
+    "input_wavelength_nm": 489.92612999999983,
+    "input_intensity": 126.233,
+    "delta_nm": -0.011600085469922305
+  },
+  {
+    "det_index": 1065,
+    "det_wavelength_nm": 491.025641025641,
+    "det_intensity": 138.3695439795113,
+    "input_index": 265,
+    "input_wavelength_nm": 491.05238999999983,
+    "input_intensity": 168.744,
+    "delta_nm": -0.026748974358838495
+  },
+  {
+    "det_index": 1078,
+    "det_wavelength_nm": 492.13675213675214,
+    "det_intensity": 142.63505785023696,
+    "input_index": 264,
+    "input_wavelength_nm": 492.17864999999983,
+    "input_intensity": 178.041,
+    "delta_nm": -0.04189786324769784
+  },
+  {
+    "det_index": 1092,
+    "det_wavelength_nm": 493.3333333333333,
+    "det_intensity": 126.71044686268466,
+    "input_index": 263,
+    "input_wavelength_nm": 493.30490999999984,
+    "input_intensity": 160.204,
+    "delta_nm": 0.02842333333347824
+  },
+  {
+    "det_index": 1105,
+    "det_wavelength_nm": 494.44444444444446,
+    "det_intensity": 78.9585490819973,
+    "input_index": 262,
+    "input_wavelength_nm": 494.43116999999984,
+    "input_intensity": 116.719,
+    "delta_nm": 0.013274444444618894
+  },
+  {
+    "det_index": 1158,
+    "det_wavelength_nm": 498.974358974359,
+    "det_intensity": 95.25899626713603,
+    "input_index": 258,
+    "input_wavelength_nm": 498.93620999999985,
+    "input_intensity": 136.963,
+    "delta_nm": 0.03814897435916009
+  },
+  {
+    "det_index": 1171,
+    "det_wavelength_nm": 500.0854700854701,
+    "det_intensity": 147.63813870029372,
+    "input_index": 257,
+    "input_wavelength_nm": 500.06246999999985,
+    "input_intensity": 174.633,
+    "delta_nm": 0.023000085470243903
+  },
+  {
+    "det_index": 1184,
+    "det_wavelength_nm": 501.1965811965812,
+    "det_intensity": 186.8387639745984,
+    "input_index": 256,
+    "input_wavelength_nm": 501.18872999999985,
+    "input_intensity": 199.193,
+    "delta_nm": 0.007851196581327713
+  },
+  {
+    "det_index": 1197,
+    "det_wavelength_nm": 502.3076923076923,
+    "det_intensity": 195.5644821720352,
+    "input_index": 255,
+    "input_wavelength_nm": 502.31498999999985,
+    "input_intensity": 204.9,
+    "delta_nm": -0.0072976923075316336
+  },
+  {
+    "det_index": 1210,
+    "det_wavelength_nm": 503.4188034188034,
+    "det_intensity": 169.04590535334506,
+    "input_index": 254,
+    "input_wavelength_nm": 503.44124999999985,
+    "input_intensity": 189.896,
+    "delta_nm": -0.022446581196447823
+  },
+  {
+    "det_index": 1223,
+    "det_wavelength_nm": 504.52991452991455,
+    "det_intensity": 134.44490478816715,
+    "input_index": 253,
+    "input_wavelength_nm": 504.56750999999986,
+    "input_intensity": 169.637,
+    "delta_nm": -0.03759547008530717
+  },
+  {
+    "det_index": 1237,
+    "det_wavelength_nm": 505.7264957264957,
+    "det_intensity": 94.92797555771588,
+    "input_index": 252,
+    "input_wavelength_nm": 505.69376999999986,
+    "input_intensity": 134.926,
+    "delta_nm": 0.03272572649586891
+  },
+  {
+    "det_index": 1250,
+    "det_wavelength_nm": 506.8376068376068,
+    "det_intensity": 73.59382288279652,
+    "input_index": 251,
+    "input_wavelength_nm": 506.82002999999986,
+    "input_intensity": 112.193,
+    "delta_nm": 0.017576837606952722
+  },
+  {
+    "det_index": 2014,
+    "det_wavelength_nm": 572.1367521367522,
+    "det_intensity": 69.22417565646866,
+    "input_index": 193,
+    "input_wavelength_nm": 572.14311,
+    "input_intensity": 107.019,
+    "delta_nm": -0.0063578632477856445
+  },
+  {
+    "det_index": 2027,
+    "det_wavelength_nm": 573.2478632478633,
+    "det_intensity": 70.99854962000667,
+    "input_index": 192,
+    "input_wavelength_nm": 573.26937,
+    "input_intensity": 110.267,
+    "delta_nm": -0.021506752136701834
+  },
+  {
+    "det_index": 2040,
+    "det_wavelength_nm": 574.3589743589744,
+    "det_intensity": 70.8148194524251,
+    "input_index": 191,
+    "input_wavelength_nm": 574.39563,
+    "input_intensity": 113.37,
+    "delta_nm": -0.036655641025618024
+  },
+  {
+    "det_index": 2054,
+    "det_wavelength_nm": 575.5555555555555,
+    "det_intensity": 73.90689129163825,
+    "input_index": 190,
+    "input_wavelength_nm": 575.52189,
+    "input_intensity": 115.626,
+    "delta_nm": 0.03366555555555806
+  },
+  {
+    "det_index": 2067,
+    "det_wavelength_nm": 576.6666666666666,
+    "det_intensity": 74.84636076856843,
+    "input_index": 189,
+    "input_wavelength_nm": 576.64815,
+    "input_intensity": 113.511,
+    "delta_nm": 0.018516666666641868
+  },
+  {
+    "det_index": 2080,
+    "det_wavelength_nm": 577.7777777777778,
+    "det_intensity": 76.79228264704574,
+    "input_index": 188,
+    "input_wavelength_nm": 577.77441,
+    "input_intensity": 114.078,
+    "delta_nm": 0.0033677777778393647
+  },
+  {
+    "det_index": 2093,
+    "det_wavelength_nm": 578.8888888888889,
+    "det_intensity": 84.24943114918597,
+    "input_index": 187,
+    "input_wavelength_nm": 578.90067,
+    "input_intensity": 121.396,
+    "delta_nm": -0.011781111111076825
+  },
+  {
+    "det_index": 2106,
+    "det_wavelength_nm": 580.0,
+    "det_intensity": 94.17660179048029,
+    "input_index": 186,
+    "input_wavelength_nm": 580.02693,
+    "input_intensity": 132.719,
+    "delta_nm": -0.026929999999993015
+  },
+  {
+    "det_index": 2119,
+    "det_wavelength_nm": 581.1111111111111,
+    "det_intensity": 93.70764399642094,
+    "input_index": 185,
+    "input_wavelength_nm": 581.15319,
+    "input_intensity": 136.996,
+    "delta_nm": -0.042078888888909205
+  },
+  {
+    "det_index": 2133,
+    "det_wavelength_nm": 582.3076923076924,
+    "det_intensity": 89.33075295012492,
+    "input_index": 184,
+    "input_wavelength_nm": 582.27945,
+    "input_intensity": 128.719,
+    "delta_nm": 0.028242307692380564
+  },
+  {
+    "det_index": 2146,
+    "det_wavelength_nm": 583.4188034188035,
+    "det_intensity": 139.29279079961645,
+    "input_index": 183,
+    "input_wavelength_nm": 583.40571,
+    "input_intensity": 166.4,
+    "delta_nm": 0.013093418803464374
+  },
+  {
+    "det_index": 2159,
+    "det_wavelength_nm": 584.5299145299145,
+    "det_intensity": 218.24908867094894,
+    "input_index": 182,
+    "input_wavelength_nm": 584.53197,
+    "input_intensity": 219.089,
+    "delta_nm": -0.002055470085451816
+  },
+  {
+    "det_index": 2172,
+    "det_wavelength_nm": 585.6410256410256,
+    "det_intensity": 251.6641199719621,
+    "input_index": 181,
+    "input_wavelength_nm": 585.65823,
+    "input_intensity": 241.833,
+    "delta_nm": -0.017204358974368006
+  },
+  {
+    "det_index": 2185,
+    "det_wavelength_nm": 586.7521367521367,
+    "det_intensity": 244.98643578785837,
+    "input_index": 180,
+    "input_wavelength_nm": 586.78449,
+    "input_intensity": 243.83,
+    "delta_nm": -0.032353247863284196
+  },
+  {
+    "det_index": 2199,
+    "det_wavelength_nm": 587.948717948718,
+    "det_intensity": 244.04085331343438,
+    "input_index": 179,
+    "input_wavelength_nm": 587.91075,
+    "input_intensity": 246.463,
+    "delta_nm": 0.03796794871800557
+  },
+  {
+    "det_index": 2212,
+    "det_wavelength_nm": 589.0598290598291,
+    "det_intensity": 257.4660726450474,
+    "input_index": 178,
+    "input_wavelength_nm": 589.03701,
+    "input_intensity": 247.148,
+    "delta_nm": 0.022819059829089383
+  },
+  {
+    "det_index": 2225,
+    "det_wavelength_nm": 590.1709401709402,
+    "det_intensity": 253.01753156846556,
+    "input_index": 177,
+    "input_wavelength_nm": 590.16327,
+    "input_intensity": 240.733,
+    "delta_nm": 0.007670170940173193
+  },
+  {
+    "det_index": 2238,
+    "det_wavelength_nm": 591.2820512820513,
+    "det_intensity": 251.2225605224379,
+    "input_index": 176,
+    "input_wavelength_nm": 591.28953,
+    "input_intensity": 239.641,
+    "delta_nm": -0.007478717948742997
+  },
+  {
+    "det_index": 2251,
+    "det_wavelength_nm": 592.3931623931624,
+    "det_intensity": 214.76281411824553,
+    "input_index": 175,
+    "input_wavelength_nm": 592.41579,
+    "input_intensity": 220.6,
+    "delta_nm": -0.022627606837659187
+  },
+  {
+    "det_index": 2264,
+    "det_wavelength_nm": 593.5042735042734,
+    "det_intensity": 171.89217857831045,
+    "input_index": 174,
+    "input_wavelength_nm": 593.54205,
+    "input_intensity": 197.885,
+    "delta_nm": -0.037776495726575376
+  },
+  {
+    "det_index": 2278,
+    "det_wavelength_nm": 594.7008547008547,
+    "det_intensity": 110.68888680799611,
+    "input_index": 173,
+    "input_wavelength_nm": 594.66831,
+    "input_intensity": 148.463,
+    "delta_nm": 0.03254470085471439
+  },
+  {
+    "det_index": 2291,
+    "det_wavelength_nm": 595.8119658119658,
+    "det_intensity": 97.97620708182357,
+    "input_index": 172,
+    "input_wavelength_nm": 595.79457,
+    "input_intensity": 134.137,
+    "delta_nm": 0.017395811965798202
+  },
+  {
+    "det_index": 2304,
+    "det_wavelength_nm": 596.9230769230769,
+    "det_intensity": 99.21126374406478,
+    "input_index": 171,
+    "input_wavelength_nm": 596.92083,
+    "input_intensity": 133.856,
+    "delta_nm": 0.0022469230768820125
+  },
+  {
+    "det_index": 2317,
+    "det_wavelength_nm": 598.034188034188,
+    "det_intensity": 96.83619111578628,
+    "input_index": 170,
+    "input_wavelength_nm": 598.04709,
+    "input_intensity": 132.556,
+    "delta_nm": -0.012901965812034177
+  },
+  {
+    "det_index": 2330,
+    "det_wavelength_nm": 599.1452991452992,
+    "det_intensity": 92.4086124963322,
+    "input_index": 169,
+    "input_wavelength_nm": 599.17335,
+    "input_intensity": 131.426,
+    "delta_nm": -0.02805085470083668
+  },
+  {
+    "det_index": 2344,
+    "det_wavelength_nm": 600.3418803418804,
+    "det_intensity": 79.45944316135943,
+    "input_index": 168,
+    "input_wavelength_nm": 600.29961,
+    "input_intensity": 123.644,
+    "delta_nm": 0.0422703418803394
+  },
+  {
+    "det_index": 2357,
+    "det_wavelength_nm": 601.4529914529915,
+    "det_intensity": 78.80270497614977,
+    "input_index": 167,
+    "input_wavelength_nm": 601.42587,
+    "input_intensity": 118.77,
+    "delta_nm": 0.02712145299142321
+  },
+  {
+    "det_index": 2370,
+    "det_wavelength_nm": 602.5641025641025,
+    "det_intensity": 76.99454743285585,
+    "input_index": 166,
+    "input_wavelength_nm": 602.55213,
+    "input_intensity": 114.77,
+    "delta_nm": 0.011972564102507022
+  },
+  {
+    "det_index": 2383,
+    "det_wavelength_nm": 603.6752136752136,
+    "det_intensity": 79.66943632185625,
+    "input_index": 165,
+    "input_wavelength_nm": 603.67839,
+    "input_intensity": 116.726,
+    "delta_nm": -0.003176324786409168
+  },
+  {
+    "det_index": 2396,
+    "det_wavelength_nm": 604.7863247863248,
+    "det_intensity": 73.3207648262137,
+    "input_index": 164,
+    "input_wavelength_nm": 604.80465,
+    "input_intensity": 112.033,
+    "delta_nm": -0.01832521367521167
+  },
+  {
+    "det_index": 3108,
+    "det_wavelength_nm": 665.6410256410256,
+    "det_intensity": 102.60961806272131,
+    "input_index": 110,
+    "input_wavelength_nm": 665.6226899999997,
+    "input_intensity": 138.222,
+    "delta_nm": 0.018335641025942095
+  },
+  {
+    "det_index": 3121,
+    "det_wavelength_nm": 666.7521367521367,
+    "det_intensity": 171.53816270422942,
+    "input_index": 109,
+    "input_wavelength_nm": 666.7489499999997,
+    "input_intensity": 188.511,
+    "delta_nm": 0.0031867521370259055
+  },
+  {
+    "det_index": 3134,
+    "det_wavelength_nm": 667.8632478632478,
+    "det_intensity": 207.29148016225983,
+    "input_index": 108,
+    "input_wavelength_nm": 667.8752099999997,
+    "input_intensity": 213.133,
+    "delta_nm": -0.011962136751890284
+  },
+  {
+    "det_index": 3147,
+    "det_wavelength_nm": 668.974358974359,
+    "det_intensity": 206.79416890130972,
+    "input_index": 107,
+    "input_wavelength_nm": 669.0014699999997,
+    "input_intensity": 217.056,
+    "delta_nm": -0.027111025640692787
+  },
+  {
+    "det_index": 3160,
+    "det_wavelength_nm": 670.0854700854701,
+    "det_intensity": 187.6378002646261,
+    "input_index": 106,
+    "input_wavelength_nm": 670.1277299999997,
+    "input_intensity": 211.541,
+    "delta_nm": -0.04225991452960898
+  },
+  {
+    "det_index": 3174,
+    "det_wavelength_nm": 671.2820512820513,
+    "det_intensity": 149.23548798092276,
+    "input_index": 105,
+    "input_wavelength_nm": 671.2539899999997,
+    "input_intensity": 177.333,
+    "delta_nm": 0.028061282051567105
+  },
+  {
+    "det_index": 3187,
+    "det_wavelength_nm": 672.3931623931624,
+    "det_intensity": 98.55398186305358,
+    "input_index": 104,
+    "input_wavelength_nm": 672.3802499999997,
+    "input_intensity": 134.022,
+    "delta_nm": 0.012912393162650915
+  },
+  {
+    "det_index": 3582,
+    "det_wavelength_nm": 706.1538461538462,
+    "det_intensity": 100.211906726677,
+    "input_index": 74,
+    "input_wavelength_nm": 706.1680499999998,
+    "input_intensity": 135.585,
+    "delta_nm": -0.014203846153577615
+  },
+  {
+    "det_index": 3595,
+    "det_wavelength_nm": 707.2649572649573,
+    "det_intensity": 105.79806637648252,
+    "input_index": 73,
+    "input_wavelength_nm": 707.2943099999998,
+    "input_intensity": 143.381,
+    "delta_nm": -0.029352735042493805
+  },
+  {
+    "det_index": 3609,
+    "det_wavelength_nm": 708.4615384615385,
+    "det_intensity": 86.44345027317331,
+    "input_index": 72,
+    "input_wavelength_nm": 708.4205699999998,
+    "input_intensity": 129.859,
+    "delta_nm": 0.04096846153868228
+  }
+]

@@ -1,0 +1,10 @@
+xlwings>=0.28.0
+numpy
+scipy
+matplotlib
+pandas
+holoviews
+datashader
+panel
+bokeh
+colorcet

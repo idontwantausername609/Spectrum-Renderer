@@ -1,0 +1,12 @@
+[
+  {
+    "prom_pct": 0.08,
+    "window": 41,
+    "raw_peaks": 7
+  },
+  {
+    "prom_pct": 0.5,
+    "window": 17,
+    "raw_peaks": 7
+  }
+]

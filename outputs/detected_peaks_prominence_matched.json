@@ -1,0 +1,65 @@
+[
+  {
+    "peak_index": 636,
+    "peak_wavelength_nm": 446.5934065934066,
+    "peak_intensity_smoothed": 62.26394159628164,
+    "nearest_input_index": 26,
+    "nearest_input_wavelength_nm": 447.12824999999975,
+    "nearest_input_intensity": 140.996,
+    "distance_nm": 0.5348434065931542
+  },
+  {
+    "peak_index": 974,
+    "peak_wavelength_nm": 471.35531135531136,
+    "peak_intensity_smoothed": 60.21784779089802,
+    "nearest_input_index": 38,
+    "nearest_input_wavelength_nm": 471.9059699999998,
+    "nearest_input_intensity": 133.733,
+    "distance_nm": 0.5506586446884398
+  },
+  {
+    "peak_index": 1251,
+    "peak_wavelength_nm": 491.64835164835165,
+    "peak_intensity_smoothed": 77.0140852889582,
+    "nearest_input_index": 16,
+    "nearest_input_wavelength_nm": 492.17864999999983,
+    "nearest_input_intensity": 178.041,
+    "distance_nm": 0.5302983516481845
+  },
+  {
+    "peak_index": 1389,
+    "peak_wavelength_nm": 501.75824175824175,
+    "peak_intensity_smoothed": 89.72951244121587,
+    "nearest_input_index": 11,
+    "nearest_input_wavelength_nm": 502.31498999999985,
+    "nearest_input_intensity": 204.9,
+    "distance_nm": 0.5567482417581004
+  },
+  {
+    "peak_index": 2542,
+    "peak_wavelength_nm": 586.2271062271062,
+    "peak_intensity_smoothed": 107.46794589626498,
+    "nearest_input_index": 2,
+    "nearest_input_wavelength_nm": 586.78449,
+    "nearest_input_intensity": 243.83,
+    "distance_nm": 0.557383772893786
+  },
+  {
+    "peak_index": 2573,
+    "peak_wavelength_nm": 588.4981684981685,
+    "peak_intensity_smoothed": 108.85749265783615,
+    "nearest_input_index": 0,
+    "nearest_input_wavelength_nm": 589.03701,
+    "nearest_input_intensity": 247.148,
+    "distance_nm": 0.5388415018314845
+  },
+  {
+    "peak_index": 3664,
+    "peak_wavelength_nm": 668.4249084249084,
+    "peak_intensity_smoothed": 95.33957486033647,
+    "nearest_input_index": 9,
+    "nearest_input_wavelength_nm": 667.8752099999997,
+    "nearest_input_intensity": 213.133,
+    "distance_nm": 0.5496984249086836
+  }
+]

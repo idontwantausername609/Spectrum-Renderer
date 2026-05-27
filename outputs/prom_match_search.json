@@ -1,0 +1,32 @@
+[
+  {
+    "pct": 0.3,
+    "min_sep_nm": 20,
+    "raw_peaks": 7
+  },
+  {
+    "pct": 0.35,
+    "min_sep_nm": 15,
+    "raw_peaks": 7
+  },
+  {
+    "pct": 0.44999999999999996,
+    "min_sep_nm": 10,
+    "raw_peaks": 7
+  },
+  {
+    "pct": 0.7,
+    "min_sep_nm": 2,
+    "raw_peaks": 7
+  },
+  {
+    "pct": 0.85,
+    "min_sep_nm": 0,
+    "raw_peaks": 7
+  },
+  {
+    "pct": 0.85,
+    "min_sep_nm": 1,
+    "raw_peaks": 7
+  }
+]
