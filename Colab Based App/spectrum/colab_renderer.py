@@ -52,7 +52,7 @@ def plot_emission_spectrum_colab_style(
     needle_shape_power=4,
     glow_width_multiplier=1.5,
     glow_alpha=0.25,
-    dpi=300,
+    dpi=600,
     dark_mode=True,
     label_y=1.05,
     label_rotation=60,
