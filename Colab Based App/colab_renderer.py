@@ -241,7 +241,7 @@ def plot_emission_spectrum(
     glow_alpha=0.25,
     dpi=600,
     mode='dark',
-    show_grid=True,
+    show_grid=False,
     peak_label_y_position=0.9,
     max_needle_y_scale=0.8,
     peak_wavelengths=None,
