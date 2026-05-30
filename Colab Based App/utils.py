@@ -7,12 +7,6 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 
-def is_nist_descriptor(descriptor, descriptor_tokens):
-    if not descriptor:
-        return False
-    desc_text = str(descriptor).lower()
-    return any(token.lower() in desc_text for token in descriptor_tokens)
-
 def resolve_column(df, candidates, label):
     """
     Find the first column whose name contains any keyword from the candidates.

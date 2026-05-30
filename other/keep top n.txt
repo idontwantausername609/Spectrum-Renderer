@@ -1,0 +1,42 @@
+Sorry for the friction — you're right to expect concrete next steps. Here's exactly what you must add so your `keep_top_n` edits work end-to-end.
+
+1) webapp.py — set/validate `keep_top_n` before calling `render_spectrum`
+- Where: in the request handler that builds `spectral_data` (right after you call `load_spectral_data(...)` and before calling `render_spectrum(...)`).
+- Add:
+```python
+# coerce keep_top_n from the form (safe int, default 0)
+try:
+    keep_top_n = int(request.form.get('keep_top_n', 0) or 0)
+    if keep_top_n < 0:
+        keep_top_n = 0
+except (ValueError, TypeError):
+    keep_top_n = 0
+spectral_data['keep_top_n'] = keep_top_n
+```
+
+2) index.html — add numeric input and send it with upload
+- Add this input near the scale-mode control:
+```html
+<label for="keepTopN">Keep top N peaks</label>
+<input id="keepTopN" name="keep_top_n" type="number" min="0" value="7" />
+```
+- Where you build FormData for the upload, append:
+```javascript
+formData.append('keep_top_n', document.getElementById('keepTopN').value);
+```
+
+3) Confirmed: no other code edits required
+- `build_spectrum_array` already accepts `keep_top_n` and `min_sep_nm`.
+- `render_spectrum` already coerces `keep_top_n` (`keep_top_n = int(spectral_data.get('keep_top_n', 0) or 0)`), and you changed it to apply only when `chosen_mode == 'normalize'`. Good.
+
+4) Quick test
+- Upload via the UI with `Keep top N peaks = 7` and `Scale = normalize` — only top 7 peaks should remain.
+- Or in Python REPL:
+```python
+sd = load_spectral_data(...)   # or create synthetic spectral_data
+sd['keep_top_n'] = 5
+fig = render_spectrum(sd, scale_mode='normalize')
+fig.savefig('test.png')
+```
+
+Want me to apply the two small edits to webapp.py and index.html for you?

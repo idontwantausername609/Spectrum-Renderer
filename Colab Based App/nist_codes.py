@@ -222,6 +222,23 @@ def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
 # Tailored for handling NIST Descriptor data
 # =======================================================================
 
+def prepare_nist_spectrum(df, intensity_col, apply_descriptor_adjustments):
+    parsed = df[intensity_col].apply(parse_nist_intensity)
+    df['_raw_intensity'] = parsed.apply(lambda t: t[0])
+    df['_descriptor'] = parsed.apply(lambda t: t[1])
+
+keys = getattr(nist_helper, "_DESCRIPTOR_KEYS_SORTED", None)
+
+def _effects_from_desc(desc):
+    if not desc:
+        return (1.0, 1.0, True)
+    if keys:
+        tokens = [k for k in keys if k in desc]
+    else:
+        tokens = [t for t in re.split(r'[\s,]+', desc) if t]
+    eff = nist_helper.compute_descriptor_effects(tokens)
+    return (eff.get("intensity_multiplier", 1.0), eff.get("width_multiplier", 1.0), eff.get("include", True))
+
 def identify_spectral_peaks(aggregated_df, prominence_percentage, peak_wavelengths=None):
     """
     Identifies index positions of prominent emission peaks. 
