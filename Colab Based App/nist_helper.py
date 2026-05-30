@@ -1,7 +1,37 @@
-# Descriptor effect utilities — drop this in your descriptor module or gemini module.
+# Descriptor effect utilities — drop this in your descriptor module.
+
+NIST_DESCRIPTORS = ['*'	,
+':'	,
+'-' ,
+'a'	,
+'b'	,
+'bl'	,
+'B'	,
+'c'	,
+'d'	,
+'D'	,
+'E'	,
+'f'	,
+'g'	,
+'G'	,
+'H'	,
+'h'	,
+'hfs'	,
+'i'	,
+'j'	,
+'l'	,
+'m'	,
+'p'	,
+'q'	,
+'r'	,
+'s'	,
+'t'	,
+'u'	,
+'w'	,
+'x'	,]
 
 # Recommended base rule set (intensity_multiplier, width_multiplier, confidence, action)
-# Values chosen to reflect NIST notes + Gemini heuristics; adjust globally if you want stronger/weaker effects.
+
 DESCRIPTOR_EFFECTS = {
     '*': (1.0, 1.0, 'medium', 'shared'),      # shared intensity (handled specially)
     ':': (1.0, 1.0, 'high', 'rounded'),       # rounded Ritz — no change
