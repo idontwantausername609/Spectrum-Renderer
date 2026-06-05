@@ -8,13 +8,14 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import utils
 
+
 try:
     nist_helper = importlib.import_module("nist_helper")
 except Exception:
     try:
-        # fallback for package-style import
-        from . import nist_helper  # may fail if not package; wrapped in try above
-    except Exception:
+        from . import nist_helper
+    except Exception as e:
+        print("Warning: NIST descriptor handler unavailable — falling back to default rendering. Error:", e)
         nist_helper = None
 
 # =======================================================================
