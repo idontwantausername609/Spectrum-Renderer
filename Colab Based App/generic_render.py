@@ -13,6 +13,7 @@ import nist_helper
 # ========================================================
 
 def prepare_generic_spectrum(df, intensity_col, apply_descriptor_adjustments):
+    df = df.copy()
     df['_raw_intensity'] = pd.to_numeric(df[intensity_col], errors='coerce')
     df['_descriptor'] = ''
     df['_intensity_mult'] = 1.0

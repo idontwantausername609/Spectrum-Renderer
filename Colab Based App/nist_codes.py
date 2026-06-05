@@ -31,19 +31,19 @@ def parse_nist_intensity(raw_value):
     """
     if pd.isna(raw_value):
         return (np.nan, "")
-    s = str(raw_value).strip()
-    m = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', s)
-    if not m:
-        return (np.nan, s)
+    text = str(raw_value).strip()
+    match = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', text)
+    if not match:
+        return (np.nan, text)
     try:
-        num = float(m.group(0))
+        num_val = float(match.group(0))
     except Exception:
-        num = np.nan
-    before = s[:m.start()].strip()
-    after = s[m.end():].strip()
+        num_val = np.nan
+    before = text[:match.start()].strip()
+    after = text[match.end():].strip()
     descriptor = (before + " " + after).strip()
     descriptor = re.sub(r'[\s,]+', ' ', descriptor)
-    return (num, descriptor)
+    return (num_val, descriptor)
 
 def clean_nist_row(wavelength_str, rel_int_str):
     """
@@ -223,22 +223,45 @@ def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
 # Tailored for handling NIST Descriptor data
 # =======================================================================
 
-def prepare_nist_spectrum(df, intensity_col, apply_descriptor_adjustments):
-    parsed = df[intensity_col].apply(parse_nist_intensity)
-    df['_raw_intensity'] = parsed.apply(lambda t: t[0])
-    df['_descriptor'] = parsed.apply(lambda t: t[1])
 
-keys = getattr(nist_helper, "_DESCRIPTOR_KEYS_SORTED", None)
+def prepare_nist_spectrum(df, intensity_col, apply_descriptor_adjustments=False):
+    df = df.copy()
+    parsed = df[intensity_col].apply(parse_nist_intensity)
+    df["_raw_intensity"] = parsed.apply(lambda t: t[0])
+    df["_descriptor"] = parsed.apply(lambda t: t[1])
+
+    effs = df["_descriptor"].apply(_effects_from_desc)
+    df["_intensity_mult"] = effs.apply(lambda v: v[0])
+    df["_width_mult"] = effs.apply(lambda v: v[1])
+    df["_include"] = effs.apply(lambda v: v[2])
+
+    df = df[df["_include"]].copy()
+    if apply_descriptor_adjustments:
+        df["_adj_intensity"] = df["_raw_intensity"] * df["_intensity_mult"]
+    else:
+        df["_adj_intensity"] = df["_raw_intensity"]
+
+    return df
+
+# normalized descriptor keys (module-level)
+_KEYS_SORTED = getattr(nist_helper, "_DESCRIPTOR_KEYS_SORTED", None)
+_KEYS_SORTED_LC = [k.lower() for k in _KEYS_SORTED] if _KEYS_SORTED else None
 
 def _effects_from_desc(desc):
-    if not desc:
-        return (1.0, 1.0, True)
-    if keys:
-        tokens = [k for k in keys if k in desc]
+    if not desc or nist_helper is None:
+        return 1.0, 1.0, True
+    desc_text = str(desc).lower()
+    if _KEYS_SORTED_LC:
+        remaining = desc_text
+        tokens = []
+        for k in _KEYS_SORTED_LC:
+            if k and k in remaining:
+                tokens.append(k)
+                remaining = remaining.replace(k, " ")
     else:
-        tokens = [t for t in re.split(r'[\s,]+', desc) if t]
+        tokens = [tok for tok in re.split(r"[\s,]+", desc_text) if tok]
     eff = nist_helper.compute_descriptor_effects(tokens)
-    return (eff.get("intensity_multiplier", 1.0), eff.get("width_multiplier", 1.0), eff.get("include", True))
+    return eff.get("intensity_multiplier", 1.0), eff.get("width_multiplier", 1.0), eff.get("include", True)
 
 def identify_spectral_peaks(aggregated_df, prominence_percentage, peak_wavelengths=None):
     """
