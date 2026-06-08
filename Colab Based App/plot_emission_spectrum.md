@@ -17,7 +17,6 @@ def plot_emission_spectrum(
     glow_alpha=0.35,
     dpi=600,
     mode="dark",
-    show_grid=False,
     peak_label_y_position=0.77,
     max_needle_y_scale=0.75,
     peak_wavelengths=None,
@@ -27,48 +26,14 @@ def plot_emission_spectrum(
     label_min_normalized_intensity=0.20,
 ):
     if nm_col is None:
-        nm_col = utils.resolve_column(
-            data_df,
-            ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm"],
-            "wavelength",
-        )
+        nm_col = utils.resolve_column(data_df, utils.lambda_tokens, "wavelength",)
     if intensity_col is None:
-        intensity_col = utils.resolve_column(
-            data_df,
-            [
-                "Grey Val",
-                "grey val",
-                "gray val",
-                "grayscale",
-                "gray value",
-                "intensity",
-                "signal",
-                "counts",
-                "value",
-                "int",
-                "rel. int.",
-                "grey",
-            ],
-            "intensity",
-        )
+        intensity_col = utils.resolve_column(data_df, utils.int_tokens, "intensity",)
 
     df_plot_data = data_df.copy()
     df_plot_data[nm_col] = pd.to_numeric(df_plot_data[nm_col], errors="coerce")
 
-    sample_values = df_plot_data[intensity_col].astype(str).fillna("")
-    numeric_fraction = float(pd.to_numeric(sample_values, errors="coerce").notna().mean()) if len(sample_values) else 0.0
-
-    nist_tokens = [token.lower() for token in getattr(nist_helper, "NIST_DESCRIPTORS", [])] if nist_helper else []
-    token_pattern = "|".join(re.escape(token) for token in nist_tokens if token)
-    contains_nist_tokens = bool(sample_values.str.lower().str.contains(token_pattern, na=False).any()) if token_pattern else False
-    contains_descriptor_chars = bool(sample_values.str.contains(r"[A-Za-z*:\(\)\[\]/%]", na=False).any())
-
-    if force_nist is True:
-        has_any_nist = True
-    elif force_nist is False:
-        has_any_nist = False
-    else:
-        has_any_nist = bool(contains_nist_tokens or (numeric_fraction < 0.6 and contains_descriptor_chars))
+    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_plot_data[intensity_col], force_nist=force_nist)
 
     if has_any_nist:
         df_plot_data = prepare_nist_spectrum(df_plot_data, intensity_col, apply_descriptor_adjustments)
@@ -83,11 +48,6 @@ def plot_emission_spectrum(
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
         ax.set_axis_off()
         return fig
-
-    if apply_descriptor_adjustments:
-        df_plot_data["_adj_intensity"] = df_plot_data["_raw_intensity"] * df_plot_data["_intensity_mult"]
-    else:
-        df_plot_data["_adj_intensity"] = df_plot_data["_raw_intensity"]
 
     adj_min = df_plot_data["_adj_intensity"].min()
     adj_max = df_plot_data["_adj_intensity"].max()
@@ -238,9 +198,6 @@ def plot_emission_spectrum(
         y=1.0,
         pad=10,
     )
-
-    if show_grid:
-        ax.grid(True, color=grid_color, linestyle=":", linewidth=0.5)
 
     if save_path:
         try:

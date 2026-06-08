@@ -12,13 +12,14 @@ import nist_helper
 
 # ========================================================
 
-def prepare_generic_spectrum(df, intensity_col, apply_descriptor_adjustments):
+def prepare_generic_spectrum(df, intensity_col, apply_descriptor_adjustments=False):
     df = df.copy()
     df['_raw_intensity'] = pd.to_numeric(df[intensity_col], errors='coerce')
     df['_descriptor'] = ''
     df['_intensity_mult'] = 1.0
     df['_width_mult'] = 1.0
     df['_include'] = True
+    df['_adj_intensity'] = df['_raw_intensity']
     return df
 
 def plot_emission_spectrum(
@@ -38,54 +39,42 @@ def plot_emission_spectrum(
     glow_alpha=0.35,
     dpi=600,
     mode='dark',
-    show_grid=False,
     peak_label_y_position=0.77,
     max_needle_y_scale=0.75,
     peak_wavelengths=None,
+    force_nist=None,
     apply_descriptor_adjustments=False,
     show_peak_labels=True,
     label_min_normalized_intensity=0.20,
 ):
     # Resolve column names at runtime (accept many common aliases)
     if nm_col is None:
-        nm_col = utils.resolve_column(
-            data_df,
-            ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm"],
-            "wavelength",
-        )
+        nm_col = utils.resolve_column(data_df, utils.lambda_tokens, "wavelength",)
     if intensity_col is None:
-        intensity_col = utils.resolve_column(
-            data_df,
-            [
-                "Grey Val",
-                "grey val",
-                "gray val",
-                "grayscale",
-                "gray value",
-                "intensity",
-                "signal",
-                "counts",
-                "value",
-                "int",
-                "rel. int.",
-                "grey",
-            ],
-            "intensity",
-        )
+        intensity_col = utils.resolve_column(data_df, utils.int_tokens, "intensity",)
 
     # Always parse NIST-style intensity cells first because descriptors are usually attached.
     df_plot_data = data_df.copy()
     df_plot_data[nm_col] = pd.to_numeric(df_plot_data[nm_col], errors='coerce')
 
-    # parse NIST-style cells
-    parsed_intensity = df_plot_data[intensity_col].apply(nist_codes.parse_nist_intensity)
-    df_plot_data['_raw_intensity'] = parsed_intensity.apply(lambda t: t[0])
-    df_plot_data['_descriptor'] = parsed_intensity.apply(lambda t: t[1])
+    # run NIST detector
+    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_plot_data[intensity_col], force_nist=force_nist)
+
+    if has_any_nist:
+        df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, intensity_col, apply_descriptor_adjustments)
+    else:
+        df_plot_data = prepare_generic_spectrum(df_plot_data, intensity_col, apply_descriptor_adjustments)
 
     # drop rows missing wavelength or numeric intensity
     df_plot_data = df_plot_data.dropna(subset=[nm_col, '_raw_intensity']).copy()
     df_plot_data = df_plot_data[(df_plot_data[nm_col] >= x_min) & (df_plot_data[nm_col] <= x_max)].copy()
     df_plot_data = df_plot_data.sort_values(by=nm_col).reset_index(drop=True)
+
+    # returns empty figure for empty datasets
+    if df_plot_data.empty:
+        fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
+        ax.set_axis_off()
+        return fig 
 
     # Normalize using the adjusted intensity
     min_intensity_val = df_plot_data['_adj_intensity'].min()
@@ -120,17 +109,15 @@ def plot_emission_spectrum(
         peaks, _ = find_peaks(df_plot_data[intensity_col], prominence=dynamic_prominence)
 
     # Create the plot (use explicit Figure/Axis to avoid side-effects)
-    fig, ax = plt.subplots(figsize=fig_size)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
 
     # Set figure background and text colors based on mode
     if mode == 'dark':
         figure_bg_color = 'black'
         text_color = 'white'
-        grid_color = 'darkgrey'
     else:  # light mode
         figure_bg_color = 'white'
         text_color = 'black'
-        grid_color = 'lightgrey'
 
     fig.patch.set_facecolor(figure_bg_color)
     ax.set_facecolor('black')  # Always keep the spectrum plot area (axes) background black
@@ -263,18 +250,6 @@ def plot_emission_spectrum(
 
     plt.title(f'Traditional Emission Spectrum Visualization ({mode.capitalize()} Mode)', color=text_color, y=1.0, pad=10)
 
-    if show_grid:
-        ax.grid(True, color=grid_color, linestyle=':', linewidth=0.5)
-
-    # Save the plot if a save_path is provided
-    if save_path:
-        try:
-            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
-        except Exception:
-            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
-
-    # Return the Figure for callers to save/close as desired
-    return fig
 
 def get_spectra(*args, save_path=None, headless=True, dpi=600, **kwargs):
     import matplotlib

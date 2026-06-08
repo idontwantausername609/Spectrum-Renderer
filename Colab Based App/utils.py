@@ -7,6 +7,13 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 
+lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm"]
+
+int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey",]
+
+major_locator = ticker.MultipleLocator(50)
+minor_locator = ticker.MultipleLocator(10)
+
 def resolve_column(df, candidates, label):
     """
     Find the first column whose name contains any keyword from the candidates.

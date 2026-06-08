@@ -22,6 +22,32 @@ except Exception:
 # Specifically for handling NIST Descriptors
 # =======================================================================
 
+def detect_nist_values(series, force_nist=None, nist_helper_module=nist_helper):
+    """
+    Return (bool has_any_nist, dict diagnostics).
+    Diagnostics: {'numeric_fraction', 'contains_tokens', 'contains_descriptor_chars'}
+    """
+    s = series.astype(str).fillna("")
+    numeric_fraction = float(pd.to_numeric(s, errors="coerce").notna().mean()) if len(s) else 0.0
+
+    tokens = [t.lower() for t in getattr(nist_helper_module, "NIST_DESCRIPTORS", [])] if nist_helper_module else []
+    token_pattern = "|".join(re.escape(t) for t in tokens if t)
+    contains_tokens = bool(s.str.lower().str.contains(token_pattern, na=False).any()) if token_pattern else False
+    contains_descriptor_chars = bool(s.str.contains(r"[A-Za-z*:\(\)\[\]/%]", na=False).any())
+
+    if force_nist is True:
+        has_any_nist = True
+    elif force_nist is False:
+        has_any_nist = False
+    else:
+        has_any_nist = bool(contains_tokens or (numeric_fraction < 0.6 and contains_descriptor_chars))
+
+    return has_any_nist, {
+        "numeric_fraction": numeric_fraction,
+        "contains_tokens": contains_tokens,
+        "contains_descriptor_chars": contains_descriptor_chars,
+    }
+
 def parse_nist_intensity(raw_value):
     """
     Parse a NIST intensity cell that may include descriptor characters.
