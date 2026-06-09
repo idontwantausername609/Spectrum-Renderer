@@ -1,5 +1,6 @@
 import re
 import importlib
+import matplotlib
 import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
@@ -12,20 +13,20 @@ import nist_helper
 
 # ========================================================
 
-def prepare_generic_spectrum(df, intensity_col, apply_descriptor_adjustments=False):
+def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
     df = df.copy()
-    df['_raw_intensity'] = pd.to_numeric(df[intensity_col], errors='coerce')
+    df['_raw_int'] = pd.to_numeric(df[int_col], errors='coerce')
     df['_descriptor'] = ''
     df['_intensity_mult'] = 1.0
     df['_width_mult'] = 1.0
     df['_include'] = True
-    df['_adj_intensity'] = df['_raw_intensity']
+    df['_adj_int'] = df['_raw_int']
     return df
 
 def plot_emission_spectrum(
     data_df,
     nm_col=None,
-    intensity_col=None,
+    int_col=None,
     prominence_percentage=0.12,
     x_min=400,
     x_max=750,
@@ -45,28 +46,28 @@ def plot_emission_spectrum(
     force_nist=None,
     apply_descriptor_adjustments=False,
     show_peak_labels=True,
-    label_min_normalized_intensity=0.20,
+    label_min_norm_int=0.20,
 ):
     # Resolve column names at runtime (accept many common aliases)
     if nm_col is None:
         nm_col = utils.resolve_column(data_df, utils.lambda_tokens, "wavelength",)
-    if intensity_col is None:
-        intensity_col = utils.resolve_column(data_df, utils.int_tokens, "intensity",)
+    if int_col is None:
+        int_col = utils.resolve_column(data_df, utils.int_tokens, "intensity",)
 
     # Always parse NIST-style intensity cells first because descriptors are usually attached.
     df_plot_data = data_df.copy()
     df_plot_data[nm_col] = pd.to_numeric(df_plot_data[nm_col], errors='coerce')
 
     # run NIST detector
-    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_plot_data[intensity_col], force_nist=force_nist)
+    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_plot_data[int_col], force_nist=force_nist)
 
     if has_any_nist:
-        df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, intensity_col, apply_descriptor_adjustments)
+        df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, int_col, apply_descriptor_adjustments)
     else:
-        df_plot_data = prepare_generic_spectrum(df_plot_data, intensity_col, apply_descriptor_adjustments)
+        df_plot_data = prepare_generic_spectrum(df_plot_data, int_col, apply_descriptor_adjustments)
 
     # drop rows missing wavelength or numeric intensity
-    df_plot_data = df_plot_data.dropna(subset=[nm_col, '_raw_intensity']).copy()
+    df_plot_data = df_plot_data.dropna(subset=[nm_col, '_raw_int']).copy()
     df_plot_data = df_plot_data[(df_plot_data[nm_col] >= x_min) & (df_plot_data[nm_col] <= x_max)].copy()
     df_plot_data = df_plot_data.sort_values(by=nm_col).reset_index(drop=True)
 
@@ -77,17 +78,17 @@ def plot_emission_spectrum(
         return fig 
 
     # Normalize using the adjusted intensity
-    min_intensity_val = df_plot_data['_adj_intensity'].min()
-    max_intensity_val = df_plot_data['_adj_intensity'].max()
-    intensity_range = max_intensity_val - min_intensity_val
-    if intensity_range == 0 or np.isnan(intensity_range):
-        df_plot_data['Normalized_Intensity'] = 1.0
+    min_int_val = df_plot_data['_adj_int'].min()
+    max_int_val = df_plot_data['_adj_int'].max()
+    int_range = max_int_val - min_int_val
+    if int_range == 0 or np.isnan(int_range):
+        df_plot_data['Norm_Int'] = 1.0
     else:
-        df_plot_data['Normalized_Intensity'] = (df_plot_data['_adj_intensity'] - min_intensity_val) / intensity_range
+        df_plot_data['Norm_Int'] = (df_plot_data['_adj_int'] - min_int_val) / int_range
 
     # Detection must always use raw numeric intensities; rendering uses adjusted values.
-    detection_col = '_raw_intensity'
-    intensity_col = '_adj_intensity'  # used for normalization/rendering
+    detection_col = '_raw_int'
+    int_col = '_adj_int'  # used for normalization/rendering
     
     # --- Peak Detection (raw data) ---
     if peak_wavelengths is not None:
@@ -106,7 +107,7 @@ def plot_emission_spectrum(
         raw_max = df_plot_data[detection_col].max()
         raw_range = raw_max - raw_min
         dynamic_prominence = prominence_percentage * (raw_range if raw_range != 0 else 1.0)
-        peaks, _ = find_peaks(df_plot_data[intensity_col], prominence=dynamic_prominence)
+        peaks, _ = find_peaks(df_plot_data[int_col], prominence=dynamic_prominence)
 
     # Create the plot (use explicit Figure/Axis to avoid side-effects)
     fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
@@ -149,7 +150,7 @@ def plot_emission_spectrum(
     _bg_y = np.linspace(0, _bg_y_top, 40)
     for _idx, _row in df_plot_data.iterrows():
         _nm = float(_row[nm_col])
-        _ni = float(_row.get('Normalized_Intensity', 0.0))
+        _ni = float(_row.get('Norm_Int', 0.0))
         _base_rgb = utils.wavelength_to_rgb(_nm)
         _final_scale = min_brightness + (1 - min_brightness) * _ni
         _color = (_base_rgb[0] * _final_scale, _base_rgb[1] * _final_scale, _base_rgb[2] * _final_scale)
@@ -163,7 +164,7 @@ def plot_emission_spectrum(
     # Plot sharp distinct lines for each identified peak using fill_betweenx for needle shape
     for j, peak_index in enumerate(peaks):
         peak_nm = df_plot_data.iloc[peak_index][nm_col]
-        peak_normalized_intensity = df_plot_data.iloc[peak_index]['Normalized_Intensity']
+        peak_norm_int = df_plot_data.iloc[peak_index]['Norm_Int']
 
         # Get base RGB color for the peak wavelength
         base_rgb = utils.wavelength_to_rgb(peak_nm)
@@ -171,18 +172,18 @@ def plot_emission_spectrum(
         # Emphasize peaks: gentle gamma + emphasis multiplier for labeled peaks
         _peak_gamma = 0.8
         _peak_emphasis = 1.4
-        final_intensity_scale = min_brightness + (1 - min_brightness) * (peak_normalized_intensity ** _peak_gamma)
-        final_intensity_scale = min(1.0, final_intensity_scale * _peak_emphasis)
+        pre_int_scale = min_brightness + (1 - min_brightness) * (peak_norm_int ** _peak_gamma)
+        final_int_scale = min(1.0, pre_int_scale * _peak_emphasis)
 
         colored_rgb = (
-            base_rgb[0] * final_intensity_scale,
-            base_rgb[1] * final_intensity_scale,
-            base_rgb[2] * final_intensity_scale,
+            base_rgb[0] * final_int_scale,
+            base_rgb[1] * final_int_scale,
+            base_rgb[2] * final_int_scale,
         )
 
         # Scale the maximum width of the needle based on normalized intensity
 
-        base_width = min_needle_max_width_nm + (max_needle_max_width_nm - min_needle_max_width_nm) * peak_normalized_intensity
+        base_width = min_needle_max_width_nm + (max_needle_max_width_nm - min_needle_max_width_nm) * peak_norm_int
         width_mult = df_plot_data.iloc[peak_index].get('_width_mult', 1.0)
         # boost peak widths so labeled peaks stand out
         _peak_width_boost = 1.6
@@ -252,10 +253,8 @@ def plot_emission_spectrum(
 
 
 def get_spectra(*args, save_path=None, headless=True, dpi=600, **kwargs):
-    import matplotlib
     if headless:
         matplotlib.use('Agg')  # Switch to non-interactive backend for safe saving
-    import matplotlib.pyplot as _plt
 
     # Call the core function (does not close the figure)
     fig = plot_emission_spectrum(*args, **kwargs)
@@ -265,9 +264,9 @@ def get_spectra(*args, save_path=None, headless=True, dpi=600, **kwargs):
         try:
             fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
         except Exception:
-            _plt.savefig(save_path, facecolor=_plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
+            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
 
     if headless:
-        _plt.close(fig)
+        plt.close(fig)
 
     return fig

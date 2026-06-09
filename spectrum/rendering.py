@@ -120,7 +120,7 @@ def build_spectrum_array(wavelengths, intensities, width_factors, actions,
         
         # Scale intensity based on broad class
         if 'broad' in action_key.lower():
-            intensity = intensity * ACTION_INTENSITY_FAC    R
+            intensity = intensity * ACTION_INTENSITY_FACTOR
         
         # Build core (Gaussian)
         sigma_base = BASE_SIGMA

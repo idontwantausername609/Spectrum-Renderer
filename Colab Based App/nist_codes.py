@@ -203,7 +203,7 @@ def nist_to_dataframe(df_raw, wavelength_candidates=None, intensity_candidates=N
 
     return out
 
-def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
+def extract_and_sanitize_data(data_df, nm_col, int_col, x_min, x_max):
     """
     Cleans raw dataframe strings, extracts intensities, binds doublets/triplets
     by 4-decimal rounding, and normalizes them uniformly via exposure compression.
@@ -212,7 +212,7 @@ def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
     
     # Format to uniform string matrix structures
     df_working['_clean_nm'] = df_working[nm_col].astype(str).str.replace('*', '', regex=False).str.replace('bl', '', regex=False).str.strip()
-    df_working['_clean_int'] = df_working[intensity_col].astype(str).str.replace('*', '', regex=False).str.replace('bl', '', regex=False).str.replace('?', '', regex=False).str.strip()
+    df_working['_clean_int'] = df_working[int_col].astype(str).str.replace('*', '', regex=False).str.replace('bl', '', regex=False).str.replace('?', '', regex=False).str.strip()
     df_working['_clean_nm'] = pd.to_numeric(df_working['_clean_nm'], errors='coerce')
 
     # Parse and extract core numeric values
@@ -221,27 +221,27 @@ def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
         nums = ''.join(c for c in str(val_str) if c.isdigit() or c == '.')
         return float(nums) if nums else 0.0
 
-    df_working['_raw_intensity'] = df_working['_clean_int'].apply(inline_extractor)
+    df_working['_raw_int'] = df_working['_clean_int'].apply(inline_extractor)
     
     # Process visibility window bounds
-    df_working = df_working.dropna(subset=['_clean_nm', '_raw_intensity']).copy()
+    df_working = df_working.dropna(subset=['_clean_nm', '_raw_int']).copy()
     df_working = df_working[(df_working['_clean_nm'] >= x_min) & (df_working['_clean_nm'] <= x_max)].copy()
     
     # Group data by rounded wavelengths to aggregate intensity totals
     df_working['_rounded_nm'] = df_working['_clean_nm'].round(4)
-    aggregated_df = df_working.groupby('_rounded_nm', as_index=False).agg({'_raw_intensity': 'sum'})
+    aggregated_df = df_working.groupby('_rounded_nm', as_index=False).agg({'_raw_int': 'sum'})
     aggregated_df = aggregated_df.sort_values(by='_rounded_nm').reset_index(drop=True)
     
     # Apply global non-linear scaling (exposure boost) to lift faint lines
-    aggregated_df['_compressed_intensity'] = np.sqrt(aggregated_df['_raw_intensity'])
+    aggregated_df['_compressed_intensity'] = np.sqrt(aggregated_df['_raw_int'])
     min_val = aggregated_df['_compressed_intensity'].min()
     max_val = aggregated_df['_compressed_intensity'].max()
     val_range = max_val - min_val
     
     if val_range == 0 or np.isnan(val_range):
-        aggregated_df['Normalized_Intensity'] = 1.0
+        aggregated_df['Norm_Int'] = 1.0
     else:
-        aggregated_df['Normalized_Intensity'] = (aggregated_df['_compressed_intensity'] - min_val) / val_range
+        aggregated_df['Norm_Int'] = (aggregated_df['_compressed_intensity'] - min_val) / val_range
         
     return aggregated_df
 
@@ -250,10 +250,10 @@ def extract_and_sanitize_data(data_df, nm_col, intensity_col, x_min, x_max):
 # =======================================================================
 
 
-def prepare_nist_spectrum(df, intensity_col, apply_descriptor_adjustments=False):
+def prepare_nist_spectrum(df, int_col, apply_descriptor_adjustments=False):
     df = df.copy()
-    parsed = df[intensity_col].apply(parse_nist_intensity)
-    df["_raw_intensity"] = parsed.apply(lambda t: t[0])
+    parsed = df[int_col].apply(parse_nist_intensity)
+    df["_raw_int"] = parsed.apply(lambda t: t[0])
     df["_descriptor"] = parsed.apply(lambda t: t[1])
 
     effs = df["_descriptor"].apply(_effects_from_desc)
@@ -263,9 +263,9 @@ def prepare_nist_spectrum(df, intensity_col, apply_descriptor_adjustments=False)
 
     df = df[df["_include"]].copy()
     if apply_descriptor_adjustments:
-        df["_adj_intensity"] = df["_raw_intensity"] * df["_intensity_mult"]
+        df["_adj_int"] = df["_raw_int"] * df["_intensity_mult"]
     else:
-        df["_adj_intensity"] = df["_raw_intensity"]
+        df["_adj_int"] = df["_raw_int"]
 
     return df
 
@@ -306,14 +306,14 @@ def identify_spectral_peaks(aggregated_df, prominence_percentage, peak_wavelengt
         
     peaks = []
     window_radius = 0  
-    intensity_floor = aggregated_df['Normalized_Intensity'].max() * (prominence_percentage * 0.2)
+    intensity_floor = aggregated_df['Norm_Int'].max() * (prominence_percentage * 0.2)
     
     for i in range(window_radius, len(aggregated_df) - window_radius):
-        current_int = aggregated_df.iloc[i]['Normalized_Intensity']
+        current_int = aggregated_df.iloc[i]['Norm_Int']
         if current_int < intensity_floor:
             continue
             
-        neighborhood = aggregated_df.iloc[i - window_radius : i + window_radius + 1]['Normalized_Intensity']
+        neighborhood = aggregated_df.iloc[i - window_radius : i + window_radius + 1]['Norm_Int']
         if current_int == neighborhood.max():
             peaks.append(i)
             
@@ -357,7 +357,7 @@ def render_spectrum_canvas(
 
     for idx, row in aggregated_df.iterrows():
         nm_val = float(row['_rounded_nm'])
-        norm_int = float(row['Normalized_Intensity'])
+        norm_int = float(row['Norm_Int'])
         base_rgb = np.array(utils.wavelength_to_rgb(nm_val))
         is_peak = idx in peaks
         
