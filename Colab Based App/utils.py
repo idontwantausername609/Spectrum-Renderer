@@ -7,12 +7,38 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 
-lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm"]
+lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs"]
 
-int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey",]
+int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts",]
 
 major_locator = ticker.MultipleLocator(50)
 minor_locator = ticker.MultipleLocator(10)
+
+# Shared/Constant Values
+X_MIN = 400
+X_MAX = 750
+FIG_SIZE = (15,3)
+MIN_NEEDLE_WIDTH = 0.1
+MAX_NEEDLE_WIDTH = 0.3
+DPI = 600
+PEAK_LABEL_POSN = 0.77
+MAX_Y_SCALE = 0.75
+NEEDLE_POWER_SHAPE = 4
+LABEL_NORM_INT = 0.20
+GLOW_WIDTH_MULT = 1.3
+
+# Normalised-Specific Values
+NORM_PROM_PERC = 0.15
+NORM_MIN_BRIGHT = 0.01
+NORM_GLOW_ALPHA = 0
+NORM_PEAK_EMPHASIS = 1.1
+
+# "Default" Values (i.e. for not normalised)
+DEFAULT_PROM_PERC = 0.08
+DEFAULT_MIN_BRIGHT = 0.1
+DEFAULT_GLOW_ALPHA = 0.35
+DEFAULT_PEAK_EMPHASIS = 1.4
+
 
 def resolve_column(df, candidates, label):
     """

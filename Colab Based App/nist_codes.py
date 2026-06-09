@@ -139,9 +139,9 @@ def nist_descriptor_adjustments():
 
 def nist_to_dataframe(df_raw, wavelength_candidates=None, intensity_candidates=None, apply_descriptor_adjustments=False):
     if wavelength_candidates is None:
-        wavelength_candidates = ["Observed", "Observed Wavelength", "obs", "wavelength", "lambda", "wl", "wavelength_nm", "lambda_nm", "nm"]
+        wavelength_candidates = utils.lambda_tokens
     if intensity_candidates is None:
-        intensity_candidates = ["Rel. Int.", "Relative Intensity", "Rel Int", "Relative", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", "value"]
+        intensity_candidates = utils.int_tokens
 
     wl_col = utils.resolve_column(df_raw, wavelength_candidates, "wavelength")
     try:

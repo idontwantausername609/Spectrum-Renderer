@@ -28,25 +28,25 @@ def plot_emission_spectrum(
     nm_col=None,
     int_col=None,
     prominence_percentage=0.12,
-    x_min=400,
-    x_max=750,
-    fig_size=(15, 3),
+    x_min=utils.X_MIN,
+    x_max=utils.X_MAX,
+    fig_size=utils.FIG_SIZE,
     min_brightness=0.1,
     save_path=None,
-    min_needle_max_width_nm=0.1,
-    max_needle_max_width_nm=0.3,
-    needle_shape_power=4,
-    glow_width_multiplier=1.3,
+    min_needle_max_width_nm=utils.MIN_NEEDLE_WIDTH,
+    max_needle_max_width_nm=utils.MAX_NEEDLE_WIDTH,
+    needle_shape_power=utils.NEEDLE_POWER_SHAPE,
+    glow_width_multiplier=utils.GLOW_WIDTH_MULT,
     glow_alpha=0.35,
-    dpi=600,
+    dpi=utils.DPI,
     mode='dark',
-    peak_label_y_position=0.77,
-    max_needle_y_scale=0.75,
+    peak_label_y_position=utils.PEAK_LABEL_POSN,
+    max_needle_y_scale=utils.MAX_Y_SCALE,
     peak_wavelengths=None,
     force_nist=None,
     apply_descriptor_adjustments=False,
     show_peak_labels=True,
-    label_min_norm_int=0.20,
+    label_min_norm_int=utils.LABEL_NORM_INT,
 ):
     # Resolve column names at runtime (accept many common aliases)
     if nm_col is None:
@@ -252,7 +252,7 @@ def plot_emission_spectrum(
     plt.title(f'Traditional Emission Spectrum Visualization ({mode.capitalize()} Mode)', color=text_color, y=1.0, pad=10)
 
 
-def get_spectra(*args, save_path=None, headless=True, dpi=600, **kwargs):
+def get_spectra(*args, save_path=None, headless=True, dpi=utils.DPI, **kwargs):
     if headless:
         matplotlib.use('Agg')  # Switch to non-interactive backend for safe saving
 
