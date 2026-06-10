@@ -1,5 +1,7 @@
 import re
 import importlib
+import random
+import string
 import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
@@ -7,9 +9,9 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 
-lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs"]
+lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave"]
 
-int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts",]
+int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", 'rel', 'count', 'flux', 'grey value',]
 
 major_locator = ticker.MultipleLocator(50)
 minor_locator = ticker.MultipleLocator(10)
@@ -21,7 +23,6 @@ FIG_SIZE = (15,3)
 MIN_NEEDLE_WIDTH = 0.1
 MAX_NEEDLE_WIDTH = 0.3
 DPI = 600
-PEAK_LABEL_POSN = 0.77
 MAX_Y_SCALE = 0.75
 NEEDLE_POWER_SHAPE = 4
 LABEL_NORM_INT = 0.20
@@ -32,12 +33,18 @@ NORM_PROM_PERC = 0.15
 NORM_MIN_BRIGHT = 0.01
 NORM_GLOW_ALPHA = 0
 NORM_PEAK_EMPHASIS = 1.1
+NORM_PEAK_LABEL_POSN = 0.75
 
 # "Default" Values (i.e. for not normalised)
 DEFAULT_PROM_PERC = 0.08
 DEFAULT_MIN_BRIGHT = 0.1
 DEFAULT_GLOW_ALPHA = 0.35
 DEFAULT_PEAK_EMPHASIS = 1.4
+DEFAULT_PEAK_LABEL_POSN = 0.77
+
+def generate_random_title():
+    random_code = ''.join(random.choices(string.digits, k=4))
+    return f'Spectrum-{random_code}'
 
 
 def resolve_column(df, candidates, label):

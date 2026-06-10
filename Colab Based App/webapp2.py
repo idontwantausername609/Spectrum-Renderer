@@ -1,28 +1,29 @@
 """
 Local browser-based spectrum renderer.
-Run: python webapp.py
-Then navigate to http://localhost:5000 in your browser.
+Run: python webapp2.py
+Then navigate to http://localhost:8000 in your browser.
 """
 
-import os
-import tempfile
-from flask import Flask, render_template, request, send_file, jsonify
-from spectrum.loader import load_spectral_data, list_sheets
-from spectrum.rendering import render_spectrum
 import io
+import os
+from flask import Flask, render_template, request, send_file, jsonify
 import matplotlib.pyplot as plt
+import pandas as pd
+from new_loader import list_sheets
+import new_renderer
+import utils
 
 
-app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
+app2 = Flask(__name__)
+app2.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 
-
-@app.route('/')
+@app2.route('/')
 def index():
     """Serve main upload form."""
     return render_template('index.html')
 
-@app.route('/api/sheets', methods=['POST'])
+
+@app2.route('/api/sheets', methods=['POST'])
 def get_sheets():
     """
     List sheets in uploaded Excel file.
@@ -47,9 +48,8 @@ def get_sheets():
         return jsonify({'sheets': sheets})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
-@app.route('/api/render', methods=['POST'])
+    
+@app2.route('/api/render', methods=['POST'])
 def render():
     """
     Load spectrum and render to image.
@@ -69,7 +69,8 @@ def render():
     file = request.files['file']
     sheet_name = request.form.get('sheet', None)
     user_title = request.form.get('title', None)
-    dark_mode = 'dark_mode' in request.form  # Checkbox value
+    random_title = 'random_title' in request.form
+    mode = 'dark' if 'dark_mode' in request.form else 'light'
     
     # Convert empty string sheet to None
     if sheet_name == '':
@@ -79,24 +80,25 @@ def render():
         return jsonify({'error': 'No file selected'}), 400
     
     try:
-        # Read file bytes into memory and pass bytes to loader
         file_bytes = file.read()
 
-        spectral_data = load_spectral_data(file_bytes, sheet_name=sheet_name, user_title=user_title)
+        # Read Excel bytes directly into a pandas DataFrame
+        df = pd.read_excel(io.BytesIO(file_bytes),
+            sheet_name=sheet_name if sheet_name is not None else 0,
+            engine='openpyxl')
 
-        # read form param (add near other request.form reads)
-        scale_mode = request.form.get('scale_mode', 'auto')
-        
-        # use a default figure size
-        figsize = (14, 4)
+        fig_size = utils.FIG_SIZE
+        scale_mode = request.form.get('scale_mode', 'raw')
 
-        # Always auto-detect top-N server-side. Do not accept user-supplied N.
-        spectral_data['keep_top_n'] = 0
-        
-        # pass it when calling render_spectrum()
-        fig = render_spectrum(spectral_data, dark_mode=dark_mode, figsize=figsize, scale_mode=scale_mode)
+        fig = new_renderer.plot_spec(
+            df,
+            mode=mode,
+            fig_size=fig_size,
+            scale_mode=scale_mode,
+            title=user_title,
+            random_title=random_title
+        )
 
-        # Return as PNG
         img_io = io.BytesIO()
         fig.savefig(img_io, format='png', dpi=150, bbox_inches='tight')
         img_io.seek(0)
@@ -109,6 +111,5 @@ def render():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app2.run(debug=True, port=8000)

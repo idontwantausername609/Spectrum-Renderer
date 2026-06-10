@@ -40,7 +40,7 @@ def plot_emission_spectrum(
     glow_alpha=0.35,
     dpi=utils.DPI,
     mode='dark',
-    peak_label_y_position=utils.PEAK_LABEL_POSN,
+    peak_label_y_position=0.77,
     max_needle_y_scale=utils.MAX_Y_SCALE,
     peak_wavelengths=None,
     force_nist=None,
