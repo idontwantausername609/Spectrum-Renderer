@@ -1,15 +1,11 @@
-import re
-import importlib
 import numpy as np
 import pandas as pd
 import matplotlib
 from scipy.signal import find_peaks
-import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import utils
 import nist_codes
-import generic_render
 
 try:
     import nist_helper
@@ -69,7 +65,7 @@ def plot_spec(
         print('NIST Destriptors Detected. Preparing NIST Rendering.')
 
     else:
-        df_plot_data = generic_render.prepare_generic_spectrum(df_plot_data, int_col, apply_descriptor_adjustments)
+        df_plot_data = utils.prepare_generic_spectrum(df_plot_data, int_col, apply_descriptor_adjustments)
         print('No NIST Destriptors Detected. Preparing Generic Rendering.')
 
         # Apply user-chosen scale mode for non-NIST data
