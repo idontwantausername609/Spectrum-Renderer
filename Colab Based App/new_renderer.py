@@ -45,7 +45,7 @@ def plot_spec(
     label_min_norm_int=utils.LABEL_NORM_INT,
     scale_mode='auto',
     title=None,
-    random_title=False,
+    random_title=None,
 ):
     # Resolve column names at runtime (accept many common aliases)
     if nm_col is None:

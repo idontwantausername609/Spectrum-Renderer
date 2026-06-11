@@ -32,7 +32,7 @@
                 <label for="title">Spectrum Title</label>
                 <input type="text" id="title" name="title" placeholder="e.g., Oxygen">
                 <label style="font-weight:600; margin-top:8px; display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <input type="checkbox" id="random_title" name="random_title" value="random_title"> Generate Random Title
+                    <input type="checkbox" name="random_title" id="random_title" value="random_title"> Generate Random Title
                 </label>
             </div>
             
@@ -148,6 +148,7 @@
 
             try {
                 const title = document.getElementById('title').value;
+                const randomTitle = document.getElementById('random_title').checked;
 
                 // Determine sheets to render
                 let selectedSheets = [];
@@ -172,7 +173,8 @@
                         formData.append('title', title);
                         formData.append('dark_mode', 'on');
                         formData.append('scale_mode', document.getElementById('scaleMode').value);
-                        // keep_top_n is auto-detected server-side; do not send this field from the client.
+                        if (randomTitle) formData.append('random_title', 'on');
+                        
 
                         const response = await fetch('/api/render', { method: 'POST', body: formData });
                         if (!response.ok) {
@@ -189,7 +191,7 @@
                         formData.append('file', file);
                         if (sheetName) formData.append('sheet', sheetName);
                         formData.append('scale_mode', document.getElementById('scaleMode').value);
-                        // keep_top_n is auto-detected server-side; do not send this field from the client.
+                        if (randomTitle) formData.append('random_title', 'on');
                         formData.append('title', title);
 
                         const response = await fetch('/api/render', { method: 'POST', body: formData });
