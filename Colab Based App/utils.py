@@ -19,7 +19,9 @@ minor_locator = ticker.MultipleLocator(10)
 # Shared/Constant Values
 X_MIN = 400
 X_MAX = 750
-FIG_SIZE = (15,3)
+FIG_HEIGHT_BASE = 3.0
+FIG_WIDTH = 15
+FIG_SIZE = (FIG_WIDTH, FIG_HEIGHT_BASE)
 MIN_NEEDLE_WIDTH = 0.1
 MAX_NEEDLE_WIDTH = 0.3
 DPI = 600
@@ -42,21 +44,44 @@ DEFAULT_GLOW_ALPHA = 0.35
 DEFAULT_PEAK_EMPHASIS = 1.4
 DEFAULT_PEAK_LABEL_POSN = 0.77
 
+# Dynamic Height Values (overflow section)
+fig_height_overflow_scale = 9.0
+
 def generate_random_title():
     random_code = ''.join(random.choices(string.digits, k=4))
     return f'Spectrum-{random_code}'
 
+def choose_scale_mode(raw_min, raw_max, eps=1e-10):
+    """
+    Heuristic to pick a display scale mode.
+    Returns one of: 'normalize', 'raw'
+    """
+    try:
+        raw_min_f = float(raw_min)
+        raw_max_f = float(raw_max)
+    except Exception:
+        return 'normalize'
+
+    # If no dynamic range, present raw values
+    rng = raw_max_f - raw_min_f
+
+    if raw_max_f <= 0 or rng <= eps:
+        return 'raw'
+
+    # If extremely wide dynamic range, use log scaling
+    if raw_max_f / (rng + eps) > 100.0:
+        return 'normalize'
+
+    # If absolute maxima are very large, sqrt helps with compression
+    if raw_max_f > 1000.0:
+        return 'normalize'
+
+    # Default: normalized display
+    return 'normalize'
+
+# def title_mode():
 
 def resolve_column(df, candidates, label):
-    """
-    Find the first column whose name contains any keyword from the candidates.
-
-    This is keyword-based matching, not exact phrase matching.
-    Example:
-    - candidate "relative intensity" matches headers containing
-      "relative", "intensity", or both
-    - candidate "wavelength_nm" matches headers containing "wavelength" or "nm"
-    """
     headers = [(str(col).strip(), str(col).strip().lower()) for col in df.columns]
 
     # Build a flat keyword list from all candidates.
@@ -84,10 +109,6 @@ def resolve_column(df, candidates, label):
     raise KeyError(f"Could not find a {label} column. Available columns: {list(df.columns)}")
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
-    """
-    Converts a wavelength in nanometers to an RGB color tuple (0-1 range).
-    Based on code by Dan Bruton.
-    """
     R, G, B = 0.0, 0.0, 0.0
 
     if 380 <= wavelength <= 440:
@@ -123,22 +144,7 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
         max(0.0, min(1.0, B)),
     )
 
-def compute_label_positions(peak_nms, intensities=None, base_y=0.85, min_sep_nm=0.5, y_step=0.04, method="prefer_stronger_top", max_y=0.98):
-    """
-    Compute per-peak Y positions so labels for nearby peaks stack/stagger instead of overlapping.
-
-    Args:
-        peak_nms: list[float] - peak wavelengths (nm) in the same order you'll iterate peaks.
-        intensities: optional list[float] - normalized intensities (same order), used by some methods.
-        base_y: float - default label baseline (same as peak_label_y_position).
-        min_sep_nm: float - minimum horizontal separation (nm) before labels considered "colliding".
-        y_step: float - vertical step size to stack/stagger labels.
-        method: "stack" | "stagger" | "prefer_stronger_top"
-        max_y: float - clamp y so labels don't run off the top.
-
-    Returns:
-        list[float] - y position for each input peak (same order).
-    """
+def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=0.5, y_step=0.04, method="prefer_stronger_top", max_y=0.98):
     if not peak_nms:
         return []
 

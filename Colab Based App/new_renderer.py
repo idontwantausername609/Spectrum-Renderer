@@ -18,33 +18,6 @@ except Exception:
     nist_helper = None
     descriptor_tokens = []
 
-def choose_scale_mode(raw_min, raw_max, eps=1e-10):
-    """
-    Heuristic to pick a display scale mode.
-    Returns one of: 'normalize', 'raw'
-    """
-    try:
-        raw_min_f = float(raw_min)
-        raw_max_f = float(raw_max)
-    except Exception:
-        return 'normalize'
-
-    # If no dynamic range, present raw values
-    rng = raw_max_f - raw_min_f
-
-    if raw_max_f <= 0 or rng <= eps:
-        return 'raw'
-
-    # If extremely wide dynamic range, use log scaling
-    if raw_max_f / (rng + eps) > 100.0:
-        return 'normalize'
-
-    # If absolute maxima are very large, sqrt helps with compression
-    if raw_max_f > 1000.0:
-        return 'normalize'
-
-    # Default: normalized display
-    return 'normalize'
 
 def plot_spec(
     data_df,
@@ -63,7 +36,7 @@ def plot_spec(
     glow_alpha=0.35,
     dpi=utils.DPI,
     mode='dark',
-    peak_label_y_position=0.77,
+    peak_label_y_position=None,
     max_needle_y_scale=utils.MAX_Y_SCALE,
     peak_wavelengths=None,
     force_nist=None,
@@ -165,11 +138,59 @@ def plot_spec(
     
     peak_nms = [float(df_plot_data.iloc[index][nm_col]) for index in peaks]
     peak_ints = [float(df_plot_data.iloc[index]["Norm_Int"]) for index in peaks]
+    init_peak_label_positon = peak_label_y_position
     try:
         label_ys = utils.compute_label_positions(
             peak_nms,
             intensities=peak_ints,
-            base_y=peak_label_y_position,
+            base_y=init_peak_label_positon,
+            min_sep_nm=0.4,
+            y_step=0.08,
+            method="prefer_stronger_top",
+            max_y=0.90,
+        )
+    except Exception:
+        label_ys = [init_peak_label_positon] * len(peaks)
+
+    if label_ys:
+        max_label_y = max(label_ys)
+        overflow = max(0, max_label_y - init_peak_label_positon)
+        print("\noverflow:", overflow)
+        print("o.g. peak label y pos'n:", init_peak_label_positon)
+        if overflow > 0:
+            new_height = utils.FIG_HEIGHT_BASE + overflow * utils.fig_height_overflow_scale
+            fig_size = (fig_size[0], new_height)
+            new_fig_height = new_height
+           
+            current_needle_height_in = max_needle_y_scale * new_height
+            new_needle_height = (max_needle_y_scale * utils.FIG_HEIGHT_BASE) / new_height 
+            max_needle_y_scale = new_needle_height
+            
+            new_peak_y_posn = (peak_label_y_position * utils.FIG_HEIGHT_BASE) / new_height
+            peak_label_y_position = new_peak_y_posn
+            
+            print("needle height goal:", new_needle_height, "\n \t inches:", new_needle_height*new_height)
+            print("current needle height (in):", current_needle_height_in)
+            
+            print("height:", new_height, "max label y:", max_label_y)
+            print("\npeak label y pos'n goal:", new_peak_y_posn, "\nnew fig height:", new_fig_height)
+                   
+        else:
+            print("Labels fit — no expansion needed")
+            max_needle_y_scale = max_needle_y_scale
+            print("peak label y pos'n:", peak_label_y_position)
+    else:
+        max_needle_y_scale = max_needle_y_scale
+        print("No labels on this spectrum")
+    
+    print(f"DEBUG: max_label_y = {max(label_ys) if label_ys else 'N/A'}")
+
+
+    try:
+        label_ys = utils.compute_label_positions(
+            peak_nms,
+            intensities=peak_ints,
+            base_y=peak_label_y_position,   # now uses updated value
             min_sep_nm=0.4,
             y_step=0.08,
             method="prefer_stronger_top",
@@ -177,6 +198,8 @@ def plot_spec(
         )
     except Exception:
         label_ys = [peak_label_y_position] * len(peaks)
+
+    print("\n new peak label pos'n:", peak_label_y_position)
 
 
     # Create the plot (use explicit Figure/Axis to avoid side-effects)
@@ -330,7 +353,7 @@ def plot_spec(
     # Title logic: custom > random fallback > skip
     if title and str(title).strip():
         plt.title(str(title).strip(), color=text_color, y=1.0, pad=pad)
-    elif random_title:
+    if random_title:
         plt.title(utils.generate_random_title(), color=text_color, y=1.0, pad=pad)
     # else: no title at all
 
