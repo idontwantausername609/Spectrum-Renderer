@@ -34,8 +34,6 @@
 - looks_like_number
   - new_loader
 
-- choose_scale_mode
-
 - lambda_tokens
   - new_renderer
   - new_loader
@@ -117,6 +115,7 @@
 # =======================================================================
 
 - _open_workbook_from_input
+  - list_sheets
 
 - list_sheets
   - webapp2

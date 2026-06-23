@@ -137,6 +137,7 @@ button {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.2s;
+    margin-top: 15px;
 }
 
 button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }

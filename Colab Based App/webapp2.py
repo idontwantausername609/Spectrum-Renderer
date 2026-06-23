@@ -48,6 +48,7 @@ def render():
     user_title = request.form.get('title', None)
     random_title = 'random_title' in request.form
     mode = 'dark' if 'dark_mode' in request.form else 'light'
+    show_peak_labels = 'show_peak_labels' in request.form
     
     # Convert empty string sheet to None
     if sheet_name == '':
@@ -73,7 +74,8 @@ def render():
             fig_size=fig_size,
             scale_mode=scale_mode,
             title=user_title,
-            random_title=random_title
+            random_title=random_title,
+            show_peak_labels=show_peak_labels,
         )
 
         img_io = io.BytesIO()

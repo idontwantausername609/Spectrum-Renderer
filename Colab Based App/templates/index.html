@@ -47,15 +47,27 @@
                         <input type="checkbox" name="render_light" value="light" checked>
                         Light Mode Image
                     </label>
-                    <label for="scaleMode">Scale</label>
-                    <select id="scaleMode" name="scale_mode">
-                      <option value="raw" selected>Raw</option>
-                      <option value="normalize">Normalize</option>
-                    </select>
-                </div>
+                </div>    
+            </div>
+
+            <div class="form-group">
+                <label for="scaleMode">Scale</label>
+                <select id="scaleMode" name="scale_mode">
+                    <option value="raw" selected>Raw - Show data as is (Default for NIST detected data)</option>
+                    <option value="normalize">Normalize - Show only strong lines</option>
+                </select>
             </div>
             
+            <div>    
+                <label style="font-weight:600; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" name="show_peak_labels" id="show_peak_labels" value="show_peak_labels" checked>
+                    Show Peak Wavelength Labels
+                </label>
+            </div>
+            
+
             <button type="submit">Render Spectrum</button>
+
         </form>
         
         <div id="result"></div>
@@ -174,6 +186,7 @@
                         formData.append('dark_mode', 'on');
                         formData.append('scale_mode', document.getElementById('scaleMode').value);
                         if (randomTitle) formData.append('random_title', 'on');
+                        if (document.getElementById('show_peak_labels').checked) formData.append('show_peak_labels', 'on');
                         
 
                         const response = await fetch('/api/render', { method: 'POST', body: formData });
@@ -193,6 +206,7 @@
                         formData.append('scale_mode', document.getElementById('scaleMode').value);
                         if (randomTitle) formData.append('random_title', 'on');
                         formData.append('title', title);
+                        if (document.getElementById('show_peak_labels').checked) formData.append('show_peak_labels', 'on');
 
                         const response = await fetch('/api/render', { method: 'POST', body: formData });
                         if (!response.ok) {
