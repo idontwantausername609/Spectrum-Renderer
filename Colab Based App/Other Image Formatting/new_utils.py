@@ -2,13 +2,10 @@ import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import re
 import numpy as np
 from scipy.signal import find_peaks
-from matplotlib.collections import LineCollection
-import matplotlib.patheffects as pe
-from matplotlib.colors import LinearSegmentedColormap
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 
 y_title = 'Intensity'
 x_title = 'Wavelength (nm)'
@@ -26,12 +23,62 @@ base_sigma_nm = 0.5 # Base width of the Gaussian (for low intensity peaks)
 max_sigma_multiplier = 4.0 # How much wider the highest intensity peaks can be
 x_min = 400
 x_max = 750
-mode = 'dark'
 reverse_x = True
 show_grid = True
 plot_type = None
 
-def rgb(wavelength, gamma=0.8):
+
+
+lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave"]
+
+int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", 'rel', 'count', 'flux', 'grey value',]
+
+
+def resolve_column(df, candidates, label):
+    headers = [(str(col).strip(), str(col).strip().lower()) for col in df.columns]
+
+    # Build a flat keyword list from all candidates.
+    # Each candidate may be a phrase; we split on non-alphanumeric characters.
+    keywords = []
+    for candidate in candidates:
+        text = str(candidate).strip().lower()
+        if not text:
+            continue
+        parts = [part for part in re.split(r'[^a-z0-9]+', text) if part]
+        keywords.extend(parts if parts else [text])
+
+    # Prefer exact matches first, then keyword containment.
+    for original, normalized in headers:
+        for candidate in candidates:
+            candidate_norm = str(candidate).strip().lower()
+            if candidate_norm and normalized == candidate_norm:
+                return original
+
+    for original, normalized in headers:
+        for keyword in keywords:
+            if keyword and keyword in normalized:
+                return original
+
+    raise KeyError(f"Could not find a {label} column. Available columns: {list(df.columns)}")
+
+
+def res_col_names(
+    data_df,
+    nm_col = None,
+    int_col = None,
+):
+    global wl_col
+    global INT_col
+    if nm_col is None:
+        wl_col = resolve_column(data_df, lambda_tokens, "wavelength",)
+    if int_col is None:
+        INT_col = resolve_column(data_df, int_tokens, "intensity",)
+
+    print(wl_col, INT_col)
+    return data_df, wl_col, INT_col
+
+
+def rgb(wavelength, gamma=gamma_factor):
 
     wavelength = float(wavelength)
     if wavelength >= 380 and wavelength <= 440:
@@ -66,6 +113,15 @@ def rgb(wavelength, gamma=0.8):
         B = 0.0
     return (R, G, B)
 
+def get_mode():
+    global mode
+    inp = input("Choose Mode: Dark or Light").lower()
+    if inp == 'dark' or inp == 'd':
+        mode = 'dark'
+    elif inp == 'light' or inp == 'l':
+        mode = 'light'
+    print("mode:", mode)
+    return mode
 
 def dynamic_prominence(prominence, int_range):
     dyn_prom = prominence * int_range
@@ -82,11 +138,21 @@ def colored_rgb(base_rgb, final_intensity_scale):
                    base_rgb[2] * final_intensity_scale)
     return colored_rgb
 
+def text_colour():
+    global colour
+    global bg
+    if mode == 'dark':
+        colour = 'white'
+        bg = 'black'
+    if mode == 'light':
+        colour = 'black'
+        bg = 'white'
+    print ("text colour:", colour,"face/bg colour:", bg)
+    return colour, bg
 
 def axis_labels(
     fig_size = (15, 6),
     show_grid = True,
-    mode = None,
     reverse_x = None,
     x_min = 400,
     x_max = 750,
@@ -97,21 +163,23 @@ def axis_labels(
     
     plt.figure(figsize=fig_size)
     ax = plt.gca()
+    get_mode()
+    text_colour()
+    print ("text colour:", colour, "bg colour:", bg, "mode:", mode)
 
-    mode = input(print("Choose Mode: Dark or Light")).lower()
     if mode == 'dark' or mode == 'd':
-        fig_bg = 'black'
-        text = 'white'
-        plt.gcf().set_facecolor('black')
+        fig_bg = bg
+        text = colour
+        plt.gcf().set_facecolor(fig_bg)
         if show_grid is True:
             plt.grid(show_grid, color='darkgrey', linestyle=':', linewidth=0.5)
     else:
-        fig_bg = 'white'
-        text = 'black'
+        fig_bg = bg
+        text = colour
         if show_grid is True:
             plt.grid(show_grid)
     
-    reverse_x = input(print("Reverse x-axis? Yes or No")).lower()
+    reverse_x = (input("Reverse x-axis? Yes or No")).lower()
     if reverse_x == 'yes' or reverse_x == 'y':
         reverse_x is True
         plt.xlim(x_max, x_min)
@@ -124,3 +192,4 @@ def axis_labels(
     plt.ylabel(y_title, color=text)
     plt.xticks(color=text)
     plt.yticks(color=text)
+

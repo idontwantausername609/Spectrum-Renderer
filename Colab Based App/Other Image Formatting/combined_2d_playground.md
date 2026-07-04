@@ -17,7 +17,6 @@ base_sigma_nm = 0.5 # Base width of the Gaussian (for low intensity peaks)
 max_sigma_multiplier = 4.0 # How much wider the highest intensity peaks can be
 x_min = 400
 x_max = 750
-mode = 'dark'
 reverse_x = True
 show_grid = True
 plot_type = None
@@ -30,6 +29,20 @@ y = df_filtered['Grey Val'].values
 ====================
 # functions
 ====================
+```python
+def get_mode()       # determines dark vs. light mode
+```
+depends on:
+- user input
+
+
+```python
+def text_colour()       # determines text colour based on mode
+```
+depends on:
+- mode
+
+
 ```python
 def dynamic_prominence(prominence, int_range)       # calculates dynamic prominence
 ```
@@ -58,7 +71,8 @@ depends on:
 def axis_labels()       # sets the "theme" of the graph. universal for 2d plots
 ```
 depends on:
-- mode
+- get_mode
+- text_colour
 - show_grid
 - x_max
 - x_min
@@ -128,4 +142,5 @@ depends on:
 - min_bright
 - bar_width
 - colored_rgb
+- mode
 
