@@ -5,6 +5,7 @@ import seaborn as sns
 import re
 import numpy as np
 from scipy.signal import find_peaks
+import matplotlib.ticker as ticker
 
 
 y_title = 'Intensity'
@@ -27,6 +28,10 @@ reverse_x = True
 show_grid = True
 plot_type = None
 
+
+
+major_locator = ticker.MultipleLocator(50)
+minor_locator = ticker.MultipleLocator(10)
 
 
 lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave"]
@@ -120,7 +125,6 @@ def get_mode():
         mode = 'dark'
     elif inp == 'light' or inp == 'l':
         mode = 'light'
-    print("mode:", mode)
     return mode
 
 def dynamic_prominence(prominence, int_range):
@@ -131,6 +135,14 @@ def dynamic_prominence(prominence, int_range):
 def final_scale(min, factor):
     final = min + (1 - min) * factor
     return final
+
+def left_x(a, b):
+    xleft = a - b / 2
+    return xleft
+
+def right_x(a, b):
+    xright = a + b / 2
+    return xright
 
 def colored_rgb(base_rgb, final_intensity_scale):
     colored_rgb = (base_rgb[0] * final_intensity_scale,
@@ -147,7 +159,6 @@ def text_colour():
     if mode == 'light':
         colour = 'black'
         bg = 'white'
-    print ("text colour:", colour,"face/bg colour:", bg)
     return colour, bg
 
 def axis_labels(
@@ -167,7 +178,7 @@ def axis_labels(
     text_colour()
     print ("text colour:", colour, "bg colour:", bg, "mode:", mode)
 
-    if mode == 'dark' or mode == 'd':
+    if mode == 'dark':
         fig_bg = bg
         text = colour
         plt.gcf().set_facecolor(fig_bg)
@@ -192,4 +203,45 @@ def axis_labels(
     plt.ylabel(y_title, color=text)
     plt.xticks(color=text)
     plt.yticks(color=text)
+
+# =============================
+# Traditional Spec Codes
+# =============================
+
+def get_generic_type():
+    global generic_type
+    gen_type = (input('Choose Rendering: Raw or Normalised')).lower()
+    if gen_type == 'raw' or gen_type == 'r':
+        generic_type = 'raw'
+    elif gen_type == 'normalised' or gen_type == 'norm' or gen_type == 'n':
+        generic_type = 'normalised'
+    
+    print (generic_type)
+    return generic_type
+
+def trad_spec_labels(fig, ax, x_min, x_max,):
+    get_mode()
+    text_colour()
+
+    global figure_bg_color
+    global text_color
+    
+    if mode == 'dark':
+        figure_bg_color = 'black'
+        text_color = colour
+    elif mode == 'light':
+        figure_bg_color = 'white'
+        text_color = colour
+    print("mode:", mode, ", fig bg colour:", figure_bg_color)
+
+    fig.patch.set_facecolor(figure_bg_color)
+    ax.set_facecolor('black')  
+    ax.yaxis.set_visible(False)
+    ax.set_xlabel(x_title, color=text_color)
+    ax.xaxis.set_major_locator(major_locator)
+    ax.xaxis.set_minor_locator(minor_locator)
+    ax.tick_params(axis='x', which='major', colors=text_color, labelsize=10)
+    ax.tick_params(axis='x', which='minor', colors=text_color, length=4, width=0.5)
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(0,1)
 
