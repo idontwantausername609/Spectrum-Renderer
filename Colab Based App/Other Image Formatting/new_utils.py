@@ -183,12 +183,17 @@ def axis_labels(
         text = colour
         plt.gcf().set_facecolor(fig_bg)
         if show_grid is True:
-            plt.grid(show_grid, color='darkgrey', linestyle=':', linewidth=0.5)
+            plt.grid(show_grid, color='darkgrey', linewidth=0.25)   # took out 'linestyle = ':' '    may have to add back in. 
+        for spine in ax.spines.values():        # new block. may have to take out or decrease linewidth. 
+            spine.set_linewidth(0.3)
+            spine.set_color('darkgrey')
     else:
         fig_bg = bg
         text = colour
         if show_grid is True:
             plt.grid(show_grid)
+        for spine in ax.spines.values():       # new block
+            spine.set_linewidth(0.5)
     
     reverse_x = (input("Reverse x-axis? Yes or No")).lower()
     if reverse_x == 'yes' or reverse_x == 'y':
