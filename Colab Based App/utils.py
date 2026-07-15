@@ -90,40 +90,38 @@ def resolve_column(df, candidates, label):
     raise KeyError(f"Could not find a {label} column. Available columns: {list(df.columns)}")
 
 def wavelength_to_rgb(wavelength, gamma=0.8):
-    R, G, B = 0.0, 0.0, 0.0
-
-    if 380 <= wavelength <= 440:
+    wavelength = float(wavelength)
+    if wavelength >= 380 and wavelength <= 440:
         attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
         R = ((-(wavelength - 440) / (440 - 380)) * attenuation) ** gamma
         G = 0.0
         B = (1.0 * attenuation) ** gamma
-    elif 440 <= wavelength <= 490:
+    elif wavelength >= 440 and wavelength <= 490:
         R = 0.0
         G = ((wavelength - 440) / (490 - 440)) ** gamma
         B = (1.0) ** gamma
-    elif 490 <= wavelength <= 510:
+    elif wavelength >= 490 and wavelength <= 510:
         R = 0.0
         G = (1.0) ** gamma
         B = ((-(wavelength - 510) / (510 - 490))) ** gamma
-    elif 510 <= wavelength <= 580:
+    elif wavelength >= 510 and wavelength <= 580:
         R = ((wavelength - 510) / (580 - 510)) ** gamma
         G = (1.0) ** gamma
         B = 0.0
-    elif 580 <= wavelength <= 645:
+    elif wavelength >= 580 and wavelength <= 645:
         R = (1.0) ** gamma
         G = ((-(wavelength - 645) / (645 - 580))) ** gamma
         B = 0.0
-    elif 645 <= wavelength <= 750:
+    elif wavelength >= 645 and wavelength <= 750:
         attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
         R = (1.0 * attenuation) ** gamma
         G = 0.0
         B = 0.0
-
-    return (
-        max(0.0, min(1.0, R)),
-        max(0.0, min(1.0, G)),
-        max(0.0, min(1.0, B)),
-    )
+    else:
+        R = 0.0
+        G = 0.0
+        B = 0.0
+    return (R, G, B)
 
 def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
     df = df.copy()
