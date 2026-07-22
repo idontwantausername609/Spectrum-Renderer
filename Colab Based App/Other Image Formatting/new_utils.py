@@ -1,51 +1,10 @@
 import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
 import math
 import helper_utils
 import prep_utils
 
 #show_grid = None
-
-# =======================
-# Calculation Functions
-# =======================
-
-def dynamic_prominence(prominence, int_range):
-    dyn_prom = prominence * int_range
-    return dyn_prom
-
-# for final_alpha AND final_intensity_scale
-def final_scale(min, factor):
-    final = min + (1 - min) * factor
-    return final
-
-def left_x(a, b):
-    xleft = a - b / 2
-    return xleft
-
-def right_x(a, b):
-    xright = a + b / 2
-    return xright
-
-def round_to_multiple(num, mult):
-    rounded = math.ceil(num / mult) * mult 
-    return rounded
-
-def colored_rgb(base_rgb, final_intensity_scale):
-    colored_rgb = (base_rgb[0] * final_intensity_scale,
-                   base_rgb[1] * final_intensity_scale,
-                   base_rgb[2] * final_intensity_scale)
-    return colored_rgb
-
-def set_y_lim():
-    if helper_utils.graph_type == 'scatter':
-        if prep_utils.y_max > 230:
-            y_max = round_to_multiple(prep_utils.y_max, 100)
-        else:
-            y_max = round_to_multiple(prep_utils.y_max, 50)
-    else:
-        y_max = round_to_multiple(prep_utils.y_max, 50)
-    print('(set_y_lim)', y_max)
-    return y_max
 
 # ===========================
 # Prompting Functions
@@ -80,11 +39,104 @@ def text_colour():
         bg = 'white'
     return colour, bg
 
+def show_peak_labels():
+    global SHOW_PEAKS, show_rgb_peaks
+    show_labels = input("Show Peak Labels? Yes or No").lower()
+    if show_labels == 'yes' or show_labels == 'y':
+        SHOW_PEAKS = 'yes'
+        show_rgb = input("Show Peak Labels in Colour? Yes or No").lower()
+        if show_rgb == 'yes' or show_rgb == 'y':
+            show_rgb_peaks = 'yes'
+        if show_rgb == 'no' or show_rgb == 'n':
+            show_rgb_peaks = 'no'
+    if show_labels == 'no' or show_labels == 'n':
+        SHOW_PEAKS = 'no'
+
+
+
+
+# =======================
+# Calculation Functions
+# =======================
+
+def dynamic_prominence(prominence, int_range):
+    dyn_prom = prominence * int_range
+    return dyn_prom
+
+# for final_alpha AND final_intensity_scale
+def final_scale(min, factor):
+    final = min + (1 - min) * factor
+    return final
+
+def left_x(a, b):
+    xleft = a - b / 2
+    return xleft
+
+def right_x(a, b):
+    xright = a + b / 2
+    return xright
+
+def round_to_multiple(num, mult):
+    rounded = math.ceil(num / mult) * mult 
+    return rounded
+
+def colored_rgb(base_rgb, final_intensity_scale):
+    colored_rgb = (base_rgb[0] * final_intensity_scale,
+                   base_rgb[1] * final_intensity_scale,
+                   base_rgb[2] * final_intensity_scale)
+    return colored_rgb
+
+def set_y_lim():
+    if helper_utils.graph_type == 'scatter' or SHOW_PEAKS == 'yes':
+        if prep_utils.y_max > 230:
+            y_max = round_to_multiple(prep_utils.y_max, 100)
+        else:
+            y_max = round_to_multiple(prep_utils.y_max, 50)
+    else:
+        y_max = round_to_multiple(prep_utils.y_max, 50)
+    print('(set_y_lim)', y_max)
+    return y_max
+
 
 
 # ==================================
 # Other Image Formatiing Functions
 # ==================================
+
+def peak_labels(data_df):
+    peaks, _ = find_peaks(data_df[helper_utils.INT_col], prominence=dynamic_prominence(helper_utils.prominence, prep_utils.int_range)) # Using dynamic prominence
+    # Label the identified sharp peaks
+    for peak_index in peaks:
+        row = data_df.iloc[peak_index]
+        wl_labels = float(data_df.iloc[peak_index][helper_utils.wl_col])
+        base_rgb = helper_utils.rgb(wl_labels)
+        final_intensity_scale = 1.0
+        color_rgb = colored_rgb(base_rgb, final_intensity_scale)
+        
+        if show_rgb_peaks == 'yes' and mode == 'dark':
+            plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
+                        (row[helper_utils.wl_col], row[helper_utils.INT_col]),
+                        textcoords="offset points", # Offset the text
+                        xytext=(0,10), # Distance from point to label
+                        ha='center', # Horizontal alignment
+                        color=color_rgb,        # this makes the text rgb
+                        ) 
+        elif show_rgb_peaks == 'yes' and mode == 'light':
+            plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
+                        (row[helper_utils.wl_col], row[helper_utils.INT_col]),
+                        textcoords="offset points", # Offset the text
+                        xytext=(0,10), # Distance from point to label
+                        ha='center', # Horizontal alignment
+                        bbox=dict(boxstyle="round,pad=0.3", fc=color_rgb, ec=color_rgb, lw=0.5, alpha=0.7),           # this makes the bbox rgb
+                        )      
+        else:
+            plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
+                        (row[helper_utils.wl_col], row[helper_utils.INT_col]),
+                        textcoords="offset points", # Offset the text
+                        xytext=(0,10), # Distance from point to label
+                        ha='center', # Horizontal alignment
+                        color = colour,
+                        )
 
 def axis_labels(
     fig_size = helper_utils.fig_size,
@@ -94,7 +146,6 @@ def axis_labels(
     x_title = helper_utils.x_title,
     y_title = helper_utils.y_title,
     text = None,
-    show_grid = helper_utils.show_grid,
     y_min = 0,
     y_max = 0,
 ):
@@ -103,30 +154,29 @@ def axis_labels(
     ax = plt.gca()
     get_mode()
     text_colour()
-
+    show = input("Show Grid? Yes or No").lower()
 
     if mode == 'dark':
         fig_bg = bg
         text = colour
         plt.gcf().set_facecolor(fig_bg)
-        if show_grid is True:
-            plt.grid(show_grid, color='darkgrey', linewidth=0.25)   # took out 'linestyle = ':' '    may have to add back in. 
         for spine in ax.spines.values():        # new block. may have to take out or decrease linewidth. 
             spine.set_linewidth(0.3)
             spine.set_color('darkgrey')
+        if show == 'yes' or show == 'y':
+            plt.grid(True, color='darkgrey', linewidth=0.25)   # took out 'linestyle = ':' '    may have to add back in. 
+        elif show == 'no' or show == 'n':
+            plt.grid(False)
     else:
         fig_bg = bg
         text = colour
-        if show_grid is True:
-            plt.grid(show_grid)
         for spine in ax.spines.values():       # new block
             spine.set_linewidth(0.5)
+        if show == 'yes' or show == 'y':
+            plt.grid(True)
+        elif show == 'no' or show == 'n':
+            plt.grid(False)
 
-
-    print(show_grid)
-
-
-    
     reverse_x = (input("Reverse x-axis? Yes or No")).lower()
     if reverse_x == 'yes' or reverse_x == 'y':
         reverse_x is True
@@ -134,8 +184,6 @@ def axis_labels(
     else:
         reverse_x is False
         plt.xlim(x_min, x_max)
-
-    print(reverse_x)
 
     y_max = set_y_lim()
 

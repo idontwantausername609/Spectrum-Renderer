@@ -62,13 +62,8 @@ def prep_other(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_max):
     df_filtered = df_filtered[(df_filtered[helper_utils.wl_col] >= x_min) & (df_filtered[helper_utils.wl_col] <= x_max)].copy()
     df_filtered = df_filtered.sort_values(by=helper_utils.wl_col).reset_index(drop=True)
 
-    if helper_utils.plot_type == 'Smoothed':
-        df_filtered['Smoothed_int'] = df_filtered[helper_utils.INT_col].rolling(window=helper_utils.smoothing_window, center=True).mean().fillna(df_filtered[helper_utils.INT_col])
-        min_int = df_filtered['Smoothed_int'].min()
-        max_int = df_filtered['Smoothed_int'].max()
-    else:
-        min_int = df_filtered[helper_utils.INT_col].min()
-        max_int = df_filtered[helper_utils.INT_col].max()
+    min_int = df_filtered[helper_utils.INT_col].min()
+    max_int = df_filtered[helper_utils.INT_col].max()
 
     int_range = max_int - min_int
     int_vals = df_filtered[helper_utils.INT_col]
@@ -78,10 +73,7 @@ def prep_other(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_max):
     if int_range == 0:
         df_filtered['Norm_Int'] = 1.0
     else:
-        if helper_utils.plot_type == 'Smoothed':
-            df_filtered['Norm_Int'] = (df_filtered['Smoothed_int'] - min_int) / int_range
-        else:
-            df_filtered['Norm_Int'] = (df_filtered[helper_utils.INT_col] - min_int) / int_range
+        df_filtered['Norm_Int'] = (df_filtered[helper_utils.INT_col] - min_int) / int_range
 
     if df_filtered.empty:
         return None, True 

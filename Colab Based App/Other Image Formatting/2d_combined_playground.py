@@ -55,14 +55,17 @@ def plot_other_spec(data_df):
     if helper_utils.graph_type == 'traditional':
         trad_spec(data_df=data_df)
     else:
-        new_utils.scale_by_int()
         data_df, should_exit_early = prep_utils.prep_other(data_df = data_df)
         if should_exit_early:
             fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=utils.DPI)
             ax.set_axis_off()
             print("Ending Rendering Early.")
             return fig
+        new_utils.show_peak_labels()
         new_utils.axis_labels()
+
+        if helper_utils.rgb_type == 'yes':
+            new_utils.scale_by_int()
 
         if helper_utils.graph_type == 'bar':
             plot_funcs.bar_iteration(data_df = data_df)
@@ -73,10 +76,10 @@ def plot_other_spec(data_df):
             plot_funcs.gaussian_iteration(df_plot_data= data_df)
         elif helper_utils.graph_type == 'line':
             plot_funcs.line_plot_iteration(data_df=data_df)
-        elif helper_utils.graph_type == 'smoothed line':
-            plot_funcs.filled_plot(data_df = data_df)
         elif helper_utils.graph_type == 'filled line':
             plot_funcs.filled_plot(data_df = data_df)
+        elif helper_utils.graph_type == 'non rgb line':
+            plot_funcs.non_rgb_iteration(data_df=data_df)
 
 
 
@@ -103,4 +106,6 @@ def detect_prep(data_df, force_nist = None):
 #detect_prep(H_DF)
 #plt.show()
 
-helper_utils.set_grid()
+#helper_utils.set_grid()
+
+helper_utils.res_col_names(H_DF)

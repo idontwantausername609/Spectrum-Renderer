@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 y_title = 'Intensity'
 x_title = 'Wavelength (nm)'
 fig_size = (15,6)
-prominence = 0.12
+prominence = 0.08       # changed from 0.12
 min_bright = 0.1
 min_alpha = 0.1
 min_alpha_scatter = 0.2
@@ -30,48 +30,37 @@ major_locator = ticker.MultipleLocator(50)
 minor_locator = ticker.MultipleLocator(10)
 
 
-lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave"]
+lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave", "w"]
 
-int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", 'rel', 'count', 'flux', 'grey value',]
-
-
-def set_grid():
-    global show_grid
-    show = input("Show Grid? Yes or No").lower()
-    if show == 'yes' or show == 'y':
-        show_grid is True
-    elif show == 'no' or show == 'n':
-        show_grid is False
-    print(show_grid)
-    return show_grid
+int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", 'rel', 'count', 'flux', 'grey value', 'i']
 
 
 def get_graph_type():
-    global graph_type, plot_type
-    plot_type = None
-    GRAPH_TYPE = input("Choose Graph Type: Line, Bar, Scatter, Gaussian, Traditional").lower()
-    if GRAPH_TYPE == 'bar' or GRAPH_TYPE == 'b':
-        graph_type = 'bar'
-    elif GRAPH_TYPE == 'scatter' or GRAPH_TYPE == 's':
-        graph_type = 'scatter'
-    elif GRAPH_TYPE == 'gaussian' or GRAPH_TYPE == 'g':
-        graph_type = 'gaussian'
-    elif GRAPH_TYPE == 'line' or GRAPH_TYPE == 'l':
-        FILL_TYPE = input("Filled Graph? Choose: Yes or No").lower()
-        if FILL_TYPE == 'yes' or FILL_TYPE == 'y':
-            PLOT_TYPE = input("Smoothed Fill? Choose: Yes or No").lower()
-            if PLOT_TYPE == 'yes' or PLOT_TYPE == 'y':
-                graph_type = 'smoothed line'
-                plot_type = 'Smoothed'
-            elif PLOT_TYPE == 'n' or PLOT_TYPE == 'no':
+    global graph_type, rgb_type
+    RGB_TYPE = input("Render as RGB Spectrum? Choose: Yes or No").lower()
+    if RGB_TYPE == 'yes' or RGB_TYPE == 'y':
+        rgb_type = 'yes'
+        GRAPH_TYPE = input("Choose Graph Type: Line, Bar, Scatter, Gaussian, Traditional").lower()
+        if GRAPH_TYPE == 'bar' or GRAPH_TYPE == 'b':
+            graph_type = 'bar'
+        elif GRAPH_TYPE == 'scatter' or GRAPH_TYPE == 's':
+            graph_type = 'scatter'
+        elif GRAPH_TYPE == 'gaussian' or GRAPH_TYPE == 'g':
+            graph_type = 'gaussian'
+        elif GRAPH_TYPE == 'line' or GRAPH_TYPE == 'l':
+            FILL_TYPE = input("Filled Graph? Choose: Yes or No").lower()
+            if FILL_TYPE == 'yes' or FILL_TYPE == 'y':
                 graph_type = 'filled line'
-                plot_type = 'filled'
-        else:
-            graph_type = 'line'           
-    elif GRAPH_TYPE == 'traditional' or GRAPH_TYPE == 'trad' or GRAPH_TYPE == 't':
-        graph_type = 'traditional'
+            else:
+                graph_type = 'line'           
+        elif GRAPH_TYPE == 'traditional' or GRAPH_TYPE == 'trad' or GRAPH_TYPE == 't':
+            graph_type = 'traditional'
+        return GRAPH_TYPE
+    elif RGB_TYPE == 'no' or RGB_TYPE == 'n':
+        rgb_type = 'no'
+        graph_type = 'non rgb line'
 
-    return GRAPH_TYPE
+    return RGB_TYPE
 
 
 
@@ -98,7 +87,7 @@ def resolve_column(df, candidates, label):
         for keyword in keywords:
             if keyword and keyword in normalized:
                 return original
-    raise KeyError(f"Could not find a {label} column. Available columns: {list(df.columns)}")
+    raise KeyError("Could not find a", label, "column. Available columns:", (df.head()))       # want this to show like print(df.head()). df.head() needs to start on a new line. 
 
 
 def res_col_names(data_df, nm_col = None, int_col = None,):
