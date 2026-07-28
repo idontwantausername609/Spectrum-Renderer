@@ -42,6 +42,12 @@ DEFAULT_PEAK_LABEL_POSN = 0.77
 # Dynamic Height Values (overflow section)
 fig_height_overflow_scale = 9.0
 
+# all above are in helper_utils
+
+
+
+
+# in new_utils
 def generate_random_title():
     random_code = ''.join(random.choices(string.digits, k=4))
     return f'Spectrum-{random_code}'
@@ -62,6 +68,9 @@ def looks_like_number(value):
     except (TypeError, ValueError):
         return False
 
+
+
+# in helper_utils
 def resolve_column(df, candidates, label):
     headers = [(str(col).strip(), str(col).strip().lower()) for col in df.columns]
 
@@ -89,6 +98,9 @@ def resolve_column(df, candidates, label):
 
     raise KeyError(f"Could not find a {label} column. Available columns: {list(df.columns)}")
 
+
+
+# in helper_utils as rgb() (this one is no longer used)
 def wavelength_to_rgb(wavelength, gamma=0.8):
     wavelength = float(wavelength)
     if wavelength >= 380 and wavelength <= 440:
@@ -123,6 +135,9 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
         B = 0.0
     return (R, G, B)
 
+
+# added to prep_utils
+
 def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
     df = df.copy()
     df['_raw_int'] = pd.to_numeric(df[int_col], errors='coerce')
@@ -132,6 +147,9 @@ def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
     df['_include'] = True
     df['_adj_int'] = df['_raw_int']
     return df
+
+
+# added to helper_utils
 
 def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=0.5, y_step=0.04, method="prefer_stronger_top", max_y=0.98):
     if not peak_nms:

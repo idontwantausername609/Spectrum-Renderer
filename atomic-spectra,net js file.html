@@ -1,0 +1,24 @@
+
+// From https://www.w3schools.com/xml/tryit.asp?filename=tryajax_first with modifications to pass in url, ctlid, and callback.
+function loadDoc(url, ctlid, callback, moredata) 
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
+      if (ctlid) document.getElementById(ctlid).innerHTML = this.responseText;
+      if (callback) callback(this.responseText, url, moredata);
+    }
+    
+    // If there is a server 500 error, try again.
+    if (this.readyState == 4 && this.status == 500) 
+    {
+        loadDoc(url, ctlid, callback);
+    }
+    
+  };
+  xhttp.open("GET", url, true);
+  xhttp.send();
+}
+

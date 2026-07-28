@@ -1,4 +1,4 @@
-# Descriptor effect utilities — drop this in your descriptor module.
+# NIST Descriptors and Descriptor Effects
 
 NIST_DESCRIPTORS = ['*'	,
 ':'	,

@@ -1,0 +1,1410 @@
+<html>
+<head>
+<title>Zn -  Interactive Atomic Spectra</title>
+
+<link rel="stylesheet" href="spectra.css?1785117751">
+<link rel="icon" href="favicon.ico">
+
+<script src="/jquery-2.1.0.min.js"></script>
+<script src="loaddoc.js"></script>
+
+<script>
+function confirm_game()
+{   // var url = 'spectrum.php?g=';
+    // window.location.href = url;
+    
+    var gs = document.getElementById('guessel');            // Not to be confused with Dr. Seuss's real last name.
+    var gc = document.getElementById('game_clicky');
+    gs.style.display = 'block';
+    
+    var rect = gc.getClientRects()[0];
+    gs.style.left = rect.left+'px';
+    gs.style.top = (rect.bottom + window.scrollY)+'px';
+    
+    window.setTimeout(function() { document.getElementById('guessgmsel').scrollIntoView(); }, 259);
+}
+
+function eblock_click(elem)
+{   var ea = document.getElementById('elemact');
+    
+    if (!ea)
+    {   window.location.href = 'spectrum.php?elem='+elem;
+        return;
+    }
+    
+    var aelem = 'Zn';
+
+    
+    switch (ea.value)
+    {   case 'a':
+        window.location.href='spectrum.php?elem='+aelem+'|'+elem+'';
+        break;
+        
+        case 'c':
+        window.location.href='spectrum.php?elem='+aelem+'&cmp='+elem+'';
+        break;
+        
+        case 'l':
+        default:
+        window.location.href='spectrum.php?elem='+elem+'';
+    }
+}
+
+</script>
+
+<script>
+function update_amts()
+{   var tbl = document.getElementById('amtbl');
+    
+    var args = '&cmp=Cd&PHPSESSID=f838962cf8d93478e1a3b42c79b14959';
+    
+    var i;
+    var elems = '';
+    for (i=0; i<tbl.rows.length; i++)
+    {   var row = tbl.rows[i];
+        var elem = row.cells[0].innerText;
+        if (elem == 'Add:') break;
+        var amt = document.getElementById('amt_'+elem).value;
+        
+        if (amt > 0) elems += (elems ? '|' : '') + elem + '@' + amt;
+    }
+    
+    var elem = document.getElementById('em_add').value;
+    // var amt  = document.getElementById('amt_add').value;
+    
+    if (elem) elems += (elems ? '|' : '') + elem; // + ':' + amt;
+    
+    
+    var url = 'spectrum.php?elem='+elems+args;
+    window.location.href = url;
+}
+
+
+var phwrap;
+var moving = false;
+var image, origL, imgL;
+var ncenimg = false;
+
+function init()
+{   var spph = document.getElementById("spphot");
+    // spph.addEventListener("mousedown", initialClick, false);
+    
+    if (!ncenimg) spph.parentElement.style.left = ""+ (parseInt(document.body.getClientRects()[0].width/2) - parseInt(spph.getClientRects()[0].width/2)) + 'px';
+    
+}
+
+
+function move(e)
+{
+  var newX = e.clientX - origL + imgL - 10;
+  var newY = e.clientY - 10;
+  
+  console.log("e.clientX "+e.clientX+" - origL "+origL+" + imgL "+imgL+" - 10 = "+newX);
+
+  image.style.left = newX + "px";
+  // image.style.top = newY + "px";
+
+  
+}
+
+
+function photexp(swlim, pixnm)
+{   var lines_swlim = 380;
+    var rect = document.getElementById('mainsp').getClientRects()[0];
+    var ph   = document.getElementById('spphot');
+    var lines_pixnm = parseFloat(rect.width) / 380;
+    
+    var photx = parseInt(rect.left + lines_pixnm*(swlim-lines_swlim));
+    var photw = parseInt(lines_pixnm/pixnm * ph.naturalWidth);
+    
+    var phot = document.getElementById('phwrap');
+    if (!phot) phot = document.getElementById('spphot');
+    phot.style.left = photx;
+    phot.style.width = photw;    
+    phot.style.position = 'absolute';
+}
+
+
+function initialClick(e) 
+{
+
+  if(moving)
+  {
+    document.removeEventListener("mousemove", move);
+    moving = !moving;
+    // update_photpos();
+    return;
+  }
+  
+  moving = !moving;
+  image = document.getElementById("phwrap");
+  origL = e.clientX;
+  imgL = image.getClientRects()[0].x;
+
+  document.addEventListener("mousemove", move, false);
+
+}
+
+function finalUp(e)
+{   moving = false;
+    // update_photpos();
+}
+
+function update_photpos()
+{   var ph = document.getElementById('spphot');
+    if (!ph) return;
+    var pettia = ph.src.split('/');
+    var fn = pettia[pettia.length-1].split('?')[0];
+    var rect = ph.getClientRects()[0];
+    
+    var url = 'photpos.php?fn='+fn+'&l='+rect.x+'&w='+rect.width;
+    loadDoc(url);
+}
+
+var startx, starty, maxy, miny, endx;
+
+function beginCurve(e)
+{   startx = e.clientX;
+    starty = e.clientY;
+    
+    maxy = miny = starty;
+}
+
+function sweepCurve(e)
+{   if (!e.clientY) return;
+    if (e.clientY < miny) miny = e.clientY;
+    if (e.clientY > maxy) maxy = e.clientY;
+    // console.log("Mouse Y at "+e.clientY+"so max, min Y "+maxy+" "+miny);
+}
+
+function endCurve(e)
+{   endx = e.clientX;
+    
+    // Translate the curve into wavelength limits and boost/cut at center.
+    var imgwid = document.getElementById("mainsp").getClientRects()[0].width;
+    var lambda_scale = parseFloat(3800) / imgwid;
+    
+    var startl, endl, multiplier;
+    var endy = e.clientY;
+    
+    startl = parseInt((startx-5) * lambda_scale + 3800);
+    endl   = parseInt((endx  -5) * lambda_scale + 3800);
+    
+    if (endl < startl) 
+    {   var swap = startl;
+        startl = endl;
+        endl = swap;
+    }
+    
+    if ( endy < starty ) // (starty - miny) > (maxy - starty) )             // Boost.
+    {   multiplier = 1.0 + (starty - endy)/100;
+    }
+    else                                                                    // Cut.
+    {   multiplier = 1.0 / (1.0 + (endy - starty)/100);
+    }
+    
+    // Call this PHP using Ajax with params for a cosine boost/cut function.
+    console.log("Multiply by "+multiplier+" from "+startl+" to "+endl);
+    
+    var url = "spectrum.php?elem=Zn&sw=380&lw=760&swm="+startl+"&lwm="+endl+"&mult="+multiplier;
+    
+    loadDoc(url, false, function(ponse)
+    {   var mainsp = document.getElementById("mainsp");
+        var msurl = mainsp.src.split('?')[0]+'?'+Date.now();
+        // mainsp.src = "";
+        mainsp.src = msurl;
+        
+    } );    // Ue, telhish co trugh?
+    
+}
+
+
+
+
+</script>
+
+</head>
+<body onload="init();"  bgcolor="#000"><!-- SNTH Array
+(
+    [Zn] => Array
+        (
+            [623] => 481
+            [602] => 472
+            [392] => 468
+            [317] => 636
+            [66] => 429
+        )
+
+)
+ -->
+
+<h2 style="font-family: serif; color: #3941ff;">Zinc</h2>
+<div class="confident">Confidence: 100%. <a onclick="document.getElementById('confdxp').style.display = '';" href="#">?</a><div id="confdxp" style="display: none;">The confidence estimate represents how sure the site admin is, that the element's actual atomic spectrum visually resembles the generated lines image on your screen, based on such considerations as the ability to obtain a high quality photo; the similarity of line intensities in the two data sources; the energy level diagrams of the element; the &quot;believability&quot; of the source intensities compared to similar elements with well photographed spectra; as well as the ability to get a good direct visual observation of the spectrum.<br><br>This confidence estimate applies only to the overall visual appearance of the element's spectrum, and does not necessarily indicate confidence in the intensities of individual lines, particularly in complex spectra with hundreds or thousands of lines, or spectra where many lines may appear to be one line or one &quot;stripe&quot; in visual observations and/or photographs.<br><br><a href="#" onclick="this.parentElement.style.display='none';">Close.</a></div></div><a href="images/Zn.png?1785117751" target="_SP"><img  src="images/Zn.png?1785117751" 
+	            id="mainsp" 
+	            alt="Spectral lines of Zinc." 
+	            style="width: 100%; cursor: crosshair;"
+	            onmousedown="beginCurve(event);"
+	            ondrag="sweepCurve(event);"
+	            ondragend="endCurve(event);"
+	            ></a><h3>Cadmium:</h3>
+<img  src="images/Cd.png?1785117751" 
+	                        style="width: 100%"
+	                        ><table class="pan"><tr>
+</tr></table>
+<p>Elements that superficially resemble Zinc: <a href="spectrum.php?elem=H&cmp=Zn">Hydrogen</a>, <a href="spectrum.php?elem=Cd&cmp=Zn">Cadmium</a></p><!-- Array
+(
+    [elem] => Zn
+    [cmp] => Cd
+    [PHPSESSID] => f838962cf8d93478e1a3b42c79b14959
+)
+ --><select onchange="window.location.href = 'spectrum.php?cmp=Cd&PHPSESSID=f838962cf8d93478e1a3b42c79b14959&elem='+this.value;">
+<option value="Zn">Zn (all)</option>
+<option value="Zn I">Zn I</option>
+<option value="Zn II">Zn II</option>
+</select>
+ | 
+Ionization amount:
+<input type="text" size="2" onchange="window.location.href = 'spectrum.php?elem=Zn&cmp=Cd&PHPSESSID=f838962cf8d93478e1a3b42c79b14959&iamt='+this.value;" value="1">
+ | 
+<a href="ions.htm">(explanation)</a><br>
+<span class="monosp"><sub>30</sub>Zn I: 1s2.2s2.2p6.3s2.3p6.3d10.4s2 <sup>1</sup>S<sub>0</sub> <a href="term_calc.php?config=1s2.2s2.2p6.3s2.3p6.3d10.4s2&e=Zn&i=0">(term calculator)</a></span><br><div align="center">
+             <a href="https://www.google.com/search?q=Zinc&tbm=isch">Image Search</a> | <a href="https://en.wikipedia.org/wiki/Zinc">Wiki</a></div><table style="" class="periodic"><tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_H" 
+	                                    title="Hydrogen" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('H');"
+	                                    >H</a><br><div class="rnb">&nbsp;</div></td>
+<td colspan="30" class="spacer">&nbsp;</td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_He" 
+	                                    title="Helium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('He');"
+	                                    >He</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Li" 
+	                                    title="Lithium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Li');"
+	                                    >Li</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Be" 
+	                                    title="Beryllium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Be');"
+	                                    >Be</a><br><div class="rnb">&nbsp;</div></td>
+<td colspan="24" class="spacer">	        <select nayme="elemact" id="elemact">
+	        <option value="l">Load Element</option>
+	        <option value="a">Add Element</option>
+	        <option value="c">Compare Elements</option>
+	        </select>
+	    </td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_B" 
+	                                    title="Boron" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('B');"
+	                                    >B</a><br><div class="rnb"><span class="comingsoon" title="Photo Coming Soon!">...</span></div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_C" 
+	                                    title="Carbon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('C');"
+	                                    >C</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_N" 
+	                                    title="Nitrogen" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('N');"
+	                                    >N</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_O" 
+	                                    title="Oxygen" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('O');"
+	                                    >O</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_F" 
+	                                    title="Fluorine" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('F');"
+	                                    >F</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ne" 
+	                                    title="Neon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ne');"
+	                                    >Ne</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Na" 
+	                                    title="Sodium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Na');"
+	                                    >Na</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Mg" 
+	                                    title="Magnesium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Mg');"
+	                                    >Mg</a><br><div class="rnb">&nbsp;</div></td>
+<td colspan="24" class="spacer">&nbsp;</td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Al" 
+	                                    title="Aluminum" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Al');"
+	                                    >Al</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Si" 
+	                                    title="Silicon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Si');"
+	                                    >Si</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_P" 
+	                                    title="Phosphorus" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('P');"
+	                                    >P</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_S" 
+	                                    title="Sulfur" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('S');"
+	                                    >S</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cl" 
+	                                    title="Chlorine" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cl');"
+	                                    >Cl</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ar" 
+	                                    title="Argon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ar');"
+	                                    >Ar</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_K" 
+	                                    title="Potassium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('K');"
+	                                    >K</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ca" 
+	                                    title="Calcium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ca');"
+	                                    >Ca</a><br><div class="rnb">&nbsp;</div></td>
+<td colspan="14" class="spacer">&nbsp;</td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Sc" 
+	                                    title="Scandium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Sc');"
+	                                    >Sc</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ti" 
+	                                    title="Titanium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ti');"
+	                                    >Ti</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_V" 
+	                                    title="Vanadium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('V');"
+	                                    >V</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cr" 
+	                                    title="Chromium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cr');"
+	                                    >Cr</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Mn" 
+	                                    title="Manganese" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Mn');"
+	                                    >Mn</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Fe" 
+	                                    title="Iron" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Fe');"
+	                                    >Fe</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Co" 
+	                                    title="Cobalt" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Co');"
+	                                    >Co</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ni" 
+	                                    title="Nickel" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ni');"
+	                                    >Ni</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cu" 
+	                                    title="Copper" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cu');"
+	                                    >Cu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   hilite" 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Zn" 
+	                                    title="Zinc" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Zn');"
+	                                    >Zn</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ga" 
+	                                    title="Gallium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ga');"
+	                                    >Ga</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ge" 
+	                                    title="Germanium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ge');"
+	                                    >Ge</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_As" 
+	                                    title="Arsenic" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('As');"
+	                                    >As</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Se" 
+	                                    title="Selenium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Se');"
+	                                    >Se</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Br" 
+	                                    title="Bromine" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Br');"
+	                                    >Br</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Kr" 
+	                                    title="Krypton" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Kr');"
+	                                    >Kr</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Rb" 
+	                                    title="Rubidium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Rb');"
+	                                    >Rb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Sr" 
+	                                    title="Strontium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Sr');"
+	                                    >Sr</a><br><div class="rnb">&nbsp;</div></td>
+<td colspan="14" class="spacer">&nbsp;</td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Y" 
+	                                    title="Yttrium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Y');"
+	                                    >Y</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Zr" 
+	                                    title="Zirconium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Zr');"
+	                                    >Zr</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Nb" 
+	                                    title="Niobium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Nb');"
+	                                    >Nb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Mo" 
+	                                    title="Molybdenum" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Mo');"
+	                                    >Mo</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Tc" 
+	                                    title="Technetium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Tc');"
+	                                    >Tc</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ru" 
+	                                    title="Ruthenium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ru');"
+	                                    >Ru</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Rh" 
+	                                    title="Rhodium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Rh');"
+	                                    >Rh</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pd" 
+	                                    title="Palladium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pd');"
+	                                    >Pd</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ag" 
+	                                    title="Silver" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ag');"
+	                                    >Ag</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cd" 
+	                                    title="Cadmium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cd');"
+	                                    >Cd</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_In" 
+	                                    title="Indium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('In');"
+	                                    >In</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Sn" 
+	                                    title="Tin" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Sn');"
+	                                    >Sn</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Sb" 
+	                                    title="Antimony" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Sb');"
+	                                    >Sb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Te" 
+	                                    title="Tellurium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Te');"
+	                                    >Te</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_I" 
+	                                    title="Iodine" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('I');"
+	                                    >I</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Xe" 
+	                                    title="Xenon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Xe');"
+	                                    >Xe</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cs" 
+	                                    title="Cesium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cs');"
+	                                    >Cs</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ba" 
+	                                    title="Barium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ba');"
+	                                    >Ba</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_La" 
+	                                    title="Lanthanum" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('La');"
+	                                    >La</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ce" 
+	                                    title="Cerium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ce');"
+	                                    >Ce</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pr" 
+	                                    title="Praseodymium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pr');"
+	                                    >Pr</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Nd" 
+	                                    title="Neodymium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Nd');"
+	                                    >Nd</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pm" 
+	                                    title="Promethium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pm');"
+	                                    >Pm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Sm" 
+	                                    title="Samarium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Sm');"
+	                                    >Sm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Eu" 
+	                                    title="Europium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Eu');"
+	                                    >Eu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Gd" 
+	                                    title="Gadolinium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Gd');"
+	                                    >Gd</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Tb" 
+	                                    title="Terbium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Tb');"
+	                                    >Tb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Dy" 
+	                                    title="Dysprosium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Dy');"
+	                                    >Dy</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ho" 
+	                                    title="Holmium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ho');"
+	                                    >Ho</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Er" 
+	                                    title="Erbium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Er');"
+	                                    >Er</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Tm" 
+	                                    title="Thulium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Tm');"
+	                                    >Tm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Yb" 
+	                                    title="Ytterbium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Yb');"
+	                                    >Yb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Lu" 
+	                                    title="Lutetium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Lu');"
+	                                    >Lu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Hf" 
+	                                    title="Hafnium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Hf');"
+	                                    >Hf</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ta" 
+	                                    title="Tantalum" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ta');"
+	                                    >Ta</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_W" 
+	                                    title="Tungsten" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('W');"
+	                                    >W</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Re" 
+	                                    title="Rhenium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Re');"
+	                                    >Re</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Os" 
+	                                    title="Osmium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Os');"
+	                                    >Os</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ir" 
+	                                    title="Iridium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ir');"
+	                                    >Ir</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pt" 
+	                                    title="Platinum" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pt');"
+	                                    >Pt</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Au" 
+	                                    title="Gold" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Au');"
+	                                    >Au</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Hg" 
+	                                    title="Mercury" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Hg');"
+	                                    >Hg</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Tl" 
+	                                    title="Thallium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Tl');"
+	                                    >Tl</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pb" 
+	                                    title="Lead" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pb');"
+	                                    >Pb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Bi" 
+	                                    title="Bismuth" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Bi');"
+	                                    >Bi</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Po" 
+	                                    title="Polonium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Po');"
+	                                    >Po</a><br><div class="rnb">&nbsp;</div></td>
+<td class="element" style="">At</td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Rn" 
+	                                    title="Radon" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Rn');"
+	                                    >Rn</a><br><div class="rnb">&nbsp;</div></td>
+</tr>
+<tr>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Fr" 
+	                                    title="Francium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Fr');"
+	                                    >Fr</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ra" 
+	                                    title="Radium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ra');"
+	                                    >Ra</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Ac" 
+	                                    title="Actinium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Ac');"
+	                                    >Ac</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Th" 
+	                                    title="Thorium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Th');"
+	                                    >Th</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pa" 
+	                                    title="Protactinium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pa');"
+	                                    >Pa</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element hasph   " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_U" 
+	                                    title="Uranium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('U');"
+	                                    >U</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Np" 
+	                                    title="Neptunium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Np');"
+	                                    >Np</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Pu" 
+	                                    title="Plutonium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Pu');"
+	                                    >Pu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Am" 
+	                                    title="Americium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Am');"
+	                                    >Am</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cm" 
+	                                    title="Curium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cm');"
+	                                    >Cm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Bk" 
+	                                    title="Berkelium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Bk');"
+	                                    >Bk</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Cf" 
+	                                    title="Californium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Cf');"
+	                                    >Cf</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                            class="element    " 
+	                            style="cursor: pointer;"
+	                            ><span  id="a_Es" 
+	                                    title="Einsteinium" 
+	                                    style="cursor: pointer;" 
+	                                    class="ilooklikeahyperlink"
+	                                    onclick="eblock_click('Es');"
+	                                    >Es</a><br><div class="rnb">&nbsp;</div></td>
+<td class="element" style="">Fm</td>
+<td class="element" style="">Md</td>
+<td class="element" style="">No</td>
+<td class="element" style="">Lr</td>
+<td class="element" style="">Rf</td>
+<td class="element" style="">Db</td>
+<td class="element" style="">Sg</td>
+<td class="element" style="">Bh</td>
+<td class="element" style="">Hs</td>
+<td class="element" style="">Mt</td>
+<td class="element" style="">Ds</td>
+<td class="element" style="">Rg</td>
+<td class="element" style="">Cn</td>
+<td class="element" style="">Nh</td>
+<td class="element" style="">Fl</td>
+<td class="element" style="">Mc</td>
+<td class="element" style="">Lv</td>
+<td class="element" style="">Ts</td>
+<td class="element" style="">Og</td>
+</tr>
+</table>
+
+
+<br><br><div align="center">Available rare-earth phosphors:<br><br><table class="periodic"><tr><th style="padding-right: 15px;">Y<sub>2</sub>O<sub>3</sub>:Ln<sup>(III)</sup>:</th><td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >La</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Ce</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_Y2O3:Pr(III)" 
+	                                  title="Y2O3:Pr(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('Y2O3:Pr(III)');"
+	                                  hrxef="spectrum.php?elem=Y2O3:Pr(III)&sw=380&lw=760"
+	                                  >Pr</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Nd</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Pm</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Sm</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_Y2O3:Eu(III)" 
+	                                  title="Y2O3:Eu(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('Y2O3:Eu(III)');"
+	                                  hrxef="spectrum.php?elem=Y2O3:Eu(III)&sw=380&lw=760"
+	                                  >Eu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Gd</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_Y2O3:Tb(III)" 
+	                                  title="Y2O3:Tb(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('Y2O3:Tb(III)');"
+	                                  hrxef="spectrum.php?elem=Y2O3:Tb(III)&sw=380&lw=760"
+	                                  >Tb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Dy</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Ho</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_Y2O3:Er(III)" 
+	                                  title="Y2O3:Er(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('Y2O3:Er(III)');"
+	                                  hrxef="spectrum.php?elem=Y2O3:Er(III)&sw=380&lw=760"
+	                                  >Er</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Tm</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Yb</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Lu</td>
+</tr></table><br><table class="periodic"><tr><th style="padding-right: 15px;">YVO<sub>4</sub>:Ln<sup>(III)</sup>:</th><td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >La</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Ce(III)" 
+	                                  title="YVO4:Ce(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Ce(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Ce(III)&sw=380&lw=760"
+	                                  >Ce</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Pr</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Nd(III)" 
+	                                  title="YVO4:Nd(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Nd(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Nd(III)&sw=380&lw=760"
+	                                  >Nd</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Pm</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Sm(III)" 
+	                                  title="YVO4:Sm(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Sm(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Sm(III)&sw=380&lw=760"
+	                                  >Sm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Eu(III)" 
+	                                  title="YVO4:Eu(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Eu(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Eu(III)&sw=380&lw=760"
+	                                  >Eu</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Gd</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Tb</td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Dy(III)" 
+	                                  title="YVO4:Dy(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Dy(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Dy(III)&sw=380&lw=760"
+	                                  >Dy</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Ho(III)" 
+	                                  title="YVO4:Ho(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Ho(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Ho(III)&sw=380&lw=760"
+	                                  >Ho</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Er(III)" 
+	                                  title="YVO4:Er(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Er(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Er(III)&sw=380&lw=760"
+	                                  >Er</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Tm(III)" 
+	                                  title="YVO4:Tm(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Tm(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Tm(III)&sw=380&lw=760"
+	                                  >Tm</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style="cursor: pointer;"
+	                              ><a id="a_YVO4:Yb(III)" 
+	                                  title="YVO4:Yb(III)" 
+	                                  style="cursor: pointer;"
+	                                  onclick="eblock_click('YVO4:Yb(III)');"
+	                                  hrxef="spectrum.php?elem=YVO4:Yb(III)&sw=380&lw=760"
+	                                  >Yb</a><br><div class="rnb">&nbsp;</div></td>
+<td   onclick="this.children[0].click();" 
+	                              class="element " 
+	                              style=""
+	                              >Lu</td>
+</tr></table><br></div><br><div style="text-align: center;">Or choose a combo: <select onclick="if (this.value) window.location.href = 'spectrum.php?elem='+this.value+'&cmp=Cd'" onchange="this.click();"><option value="">-----</option><option value="N@78|O@21|Ar@1">Air</option><option value="Al@10|Ni@19|Co@13|Fe@58">Alnico</option><option value="Cu@7|Zn@3">Brass</option><option value="Cu@.88|Sn@.12">Bronze</option><option value="Cu@3|Ni|Fe">Cunife</option><option value="Cu@3|Ni@2">Cupronickel</option><option value="Co@12|Cr@4|Mo">Dental Alloy</option><option value="Hg@50|Ag@22|Sn@14|Zn@8">Dental Amalgam</option><option value="Ga@685|In@215|Sn@100">Galinstan</option><option value="Cu@7|Ni@5|Zn@10">German Silver</option><option value="Fe@84|Mn@14|C@2">Manganese Steel</option><option value="Fe@63.4|Ni@19|Co@12|Mo@5|Ti@1.6">Maraging Steel</option><option value="Hg@20|YVO4:Eu(III)@4">Mercury Lamp with Phosphor</option><option value="Na@0.2|Hg@5|In@4">Metal Halide Blu</option><option value="Na@1|Hg@4|Sc@25|Li@1.5">Metal Halide Wht</option><option value="Ni@4|Cr">Nichrome</option><option value="Ne@.5|Kr|Xe@15">Plasma Globe Tendril</option><option value="Ne@5|Kr|Xe@5">Plasma Globe Touch</option><option value="Au|Cu">Red Gold</option><option value="Au@75|Cu@22.25|Ag@2.75">Rose Gold</option><option value="Sn@63|Pb@37">Solder</option><option value="Fe@87|Cr@11|C@2">Stainless Steel</option><option value="Hg@20|Y2O3:Eu(III)@5|Y2O3:Tb(III)@1.5">Triphosphor Fluorescent</option><option value="Pb@5|Sb@3|Sn@2">Type Metal</option><option value="H@1|O@5">Water vapor</option><option value="Bi@500|Pb@267|Sn@133|Cd@100">Wood's Metal</option><option value="Zn|Al@4|Cu@3">Zamak</option></select></div><br><div style="text-align: center;"><a href="spectrum.php?elem=rand">Random</a> | <a href="spectrum.php?fcard=1">Flash Cards</a> | <a href="yourelem.php">Which Element Are You?</a></div>
+<p>Atomic-Spectra.net is supported by your donations.
+<center>
+<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="atomic.spectra" data-color="#5F7FFF" data-emoji=""  data-font="Bree" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
+</center>
+</p>
+
+<p>The spectra generated by this page, as well as any/all included spectrum photos, are Public Domain or CC0 
+(<a href="https://creativecommons.org/publicdomain/zero/1.0/">https://creativecommons.org/publicdomain/zero/1.0/</a>).</p>
+
+<p><a href="ppolicy.htm">Privacy Policy</a>
+|
+<a href="rcgnztoc.htm">Guide for Recognizing Spectra</a>
+|
+<a href="index.php">Back to Home Page</a>
+</p>
+
+<center>
+<a href="https://info.flagcounter.com/v6pF"><img src="https://s11.flagcounter.com/count2/v6pF/bg_000000/txt_A3E7FF/border_336699/columns_8/maxflags_16/viewers_0/labels_0/pageviews_0/flags_0/percent_0/" alt="Flag Counter" border="0"></a>
+</center>
+
+
+
+
+
+

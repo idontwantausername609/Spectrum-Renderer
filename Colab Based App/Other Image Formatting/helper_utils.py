@@ -3,13 +3,49 @@ this module has the predefined variables, get_graph_type(), set_grid(), the inte
 '''
 
 import re
-import matplotlib.ticker as ticker
+import matplotlib.ticker as ticker  # noqa: PLR0402
 
-y_title = 'Intensity'
-x_title = 'Wavelength (nm)'
+# Shared Values
+Y_TITLE = 'Intensity'
+X_TITLE = 'Wavelength (nm)'
+COLOUR = 'white'
+BG = 'black'
+X_MIN = 400
+X_MAX = 750
+FIG_WIDTH = 15
+DPI = 600
+
+# Traditional Plot Values
+FIG_HEIGHT_BASE = 3.0
+FIG_SIZE = (FIG_WIDTH, FIG_HEIGHT_BASE)
+MIN_NEEDLE_WIDTH = 0.1
+MAX_NEEDLE_WIDTH = 0.3
+MAX_Y_SCALE = 0.75
+NEEDLE_POWER_SHAPE = 4
+LABEL_NORM_INT = 0.20
+GLOW_WIDTH_MULT = 1.3
+
+# Dynamic Height Values (overflow section)
+fig_height_overflow_scale = 9.0
+
+# Normalised-Specific Values
+NORM_PROM_PERC = 0.15
+NORM_MIN_BRIGHT = 0.01
+NORM_GLOW_ALPHA = 0
+NORM_PEAK_EMPHASIS = 1.1
+NORM_PEAK_LABEL_POSN = 0.75
+
+# "Default" Values (i.e. for not normalised)
+DEFAULT_PROM_PERC = 0.08    # also used by "other" plots
+DEFAULT_MIN_BRIGHT = 0.1    # also used by "other" plots
+DEFAULT_GLOW_ALPHA = 0.35
+DEFAULT_PEAK_EMPHASIS = 1.4
+DEFAULT_PEAK_LABEL_POSN = 0.77
+
+# Other Plot Values
 fig_size = (15,6)
-prominence = 0.08       # changed from 0.12
-min_bright = 0.1
+#prominence = 0.08       # changed from 0.12
+#min_bright = 0.1
 min_alpha = 0.1
 min_alpha_scatter = 0.2
 base_marker_size = 5
@@ -19,8 +55,6 @@ bar_width = 1
 smoothing_window = 5    # Increase this value to control the degree of smoothing
 base_sigma_nm = 0.5 # Base width of the Gaussian (for low intensity peaks)
 max_sigma_multiplier = 4.0 # How much wider the highest intensity peaks can be
-x_min = 400
-x_max = 750
 reverse_x = True
 plot_type = None
 show_grid = True
@@ -61,7 +95,6 @@ def get_graph_type():
         graph_type = 'non rgb line'
 
     return RGB_TYPE
-
 
 
 def resolve_column(df, candidates, label):
@@ -133,3 +166,40 @@ def rgb(wavelength, gamma=gamma_factor):
         G = 0.0
         B = 0.0
     return (R, G, B)
+
+
+def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=0.5, y_step=0.04, method="prefer_stronger_top", max_y=0.98):
+    if not peak_nms:
+        return []
+
+    # prepare indices sorted by wavelength
+    idx_sorted = sorted(range(len(peak_nms)), key=lambda i: peak_nms[i])
+    result = [base_y] * len(peak_nms)
+
+    # build clusters of peaks closer than min_sep_nm
+    clusters = []
+    cur = [idx_sorted[0]]
+    for i in idx_sorted[1:]:
+        if abs(peak_nms[i] - peak_nms[cur[-1]]) <= min_sep_nm:
+            cur.append(i)
+        else:
+            clusters.append(cur)
+            cur = [i]
+    clusters.append(cur)
+
+    for cluster in clusters:
+        if len(cluster) == 1:
+            result[cluster[0]] = base_y
+            continue
+
+        if method == "prefer_stronger_top" and intensities is not None:
+            cluster_sorted = sorted(cluster, key=lambda k: -float(intensities[k]))
+            n = len(cluster_sorted)
+            if n == 1:
+                result[cluster_sorted[0]] = base_y
+            else:
+                step = min(y_step, (max_y - base_y) / (n - 1))
+                for pos, idx in enumerate(cluster_sorted):
+                    result[idx] = base_y + pos * step
+
+    return result

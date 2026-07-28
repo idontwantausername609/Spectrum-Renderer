@@ -1,10 +1,26 @@
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
-import utils
 import new_utils
 import prep_utils
 import plot_funcs
 import helper_utils
+
+
+
+
+def load_data(file_path):
+    """Automatically loads CSV or Excel files into a pandas DataFrame."""
+    # Extract the file extension in lowercase
+    ext = os.path.splitext(file_path)[1].lower()
+    print(file_path)
+    
+    if ext == '.csv':
+        return pd.read_csv(file_path)
+    elif ext in ['.xlsx', '.xls']:
+        return pd.read_excel(file_path)
+    else:
+        raise ValueError(f"Unsupported file format: {ext}")
 
 
 H_SHEET = "Colab Based App/Other Image Formatting/h test.xlsx"
@@ -38,7 +54,7 @@ def early_exit(data_df, has_any_nist, force_nist = None):
 '''
 
 
-def trad_spec(data_df, fig_size=utils.FIG_SIZE, dpi=utils.DPI,):
+def trad_spec(data_df, fig_size=helper_utils.FIG_SIZE, dpi=helper_utils.DPI,):
     df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = data_df)
     if should_exit_early:
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
@@ -57,7 +73,7 @@ def plot_other_spec(data_df):
     else:
         data_df, should_exit_early = prep_utils.prep_other(data_df = data_df)
         if should_exit_early:
-            fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=utils.DPI)
+            fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=helper_utils.DPI)
             ax.set_axis_off()
             print("Ending Rendering Early.")
             return fig
@@ -103,9 +119,9 @@ def detect_prep(data_df, force_nist = None):
 
 
 
-#detect_prep(H_DF)
-#plt.show()
+detect_prep(HE_DF)
+plt.show()
 
 #helper_utils.set_grid()
 
-helper_utils.res_col_names(H_DF)
+#helper_utils.res_col_names(H_DF)

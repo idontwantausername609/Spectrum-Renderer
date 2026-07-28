@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
-import utils
 import nist_codes
 import matplotlib.patheffects as pe
 import new_utils
@@ -16,50 +15,57 @@ int_col = '_adj_int'
 # Traditonal Plot
 # ================
 
-# updated to work with trad_spec(). eventually want it to work with set_generic_type()
+# updated to work with trad_spec().
 
 def plot(
     df_plot_data,
+    scale_mode,
     nm_col,
     has_any_nist,
+    #mode,
+    show_grid = False,
+    scale_by_int = None,
+    save_path = None,
     prominence_percentage=0,     
-    fig_size=utils.FIG_SIZE,
+    fig_size=helper_utils.FIG_SIZE,
     min_brightness=0,
     peak_wavelengths=None,
     show_peak_labels=True,
-    x_min=utils.X_MIN,
-    x_max=utils.X_MAX,
-    min_needle_max_width_nm=utils.MIN_NEEDLE_WIDTH,
-    max_needle_max_width_nm=utils.MAX_NEEDLE_WIDTH,
-    needle_shape_power=utils.NEEDLE_POWER_SHAPE,
-    glow_width_multiplier=utils.GLOW_WIDTH_MULT,
+    x_min=helper_utils.X_MIN,
+    x_max=helper_utils.X_MAX,
+    min_needle_max_width_nm=helper_utils.MIN_NEEDLE_WIDTH,
+    max_needle_max_width_nm=helper_utils.MAX_NEEDLE_WIDTH,
+    needle_shape_power=helper_utils.NEEDLE_POWER_SHAPE,
+    glow_width_multiplier=helper_utils.GLOW_WIDTH_MULT,
     glow_alpha=0,
-    dpi=utils.DPI,
+    dpi=helper_utils.DPI,
     peak_label_y_position=0,
-    label_min_norm_int=utils.LABEL_NORM_INT,
+    label_min_norm_int=helper_utils.LABEL_NORM_INT,
     subplots_adjust_top = 0.90,
-    max_needle_y = utils.MAX_Y_SCALE,
-    fig_height_overflow_scale = utils.fig_height_overflow_scale,
-    fig_height_base = utils.FIG_HEIGHT_BASE,
+    max_needle_y = helper_utils.MAX_Y_SCALE,
+    fig_height_overflow_scale = helper_utils.fig_height_overflow_scale,
+    fig_height_base = helper_utils.FIG_HEIGHT_BASE,
+    #title=None,
+    #random_title=None,
+    #save_path = None,
 ):
 
     fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-    new_utils.trad_spec_labels(fig=fig, ax=ax, x_min=x_min, x_max=x_max)
+    new_utils.trad_spec_labels(fig=fig, ax=ax, x_min=x_min, x_max=x_max,)
 
     if has_any_nist:
-        new_utils.generic_type = None
-        min_brightness = utils.DEFAULT_MIN_BRIGHT
-        glow_alpha = utils.DEFAULT_GLOW_ALPHA
-        prominence_percentage = utils.DEFAULT_PROM_PERC
-        peak_label_y_position = utils.DEFAULT_PEAK_LABEL_POSN
+        scale_mode = None
+        min_brightness = helper_utils.DEFAULT_MIN_BRIGHT
+        glow_alpha = helper_utils.DEFAULT_GLOW_ALPHA
+        prominence_percentage = helper_utils.DEFAULT_PROM_PERC
+        peak_label_y_position = helper_utils.DEFAULT_PEAK_LABEL_POSN
     else:
-        new_utils.get_generic_type()
-        if new_utils.generic_type == 'raw':
-            glow_alpha = utils.DEFAULT_GLOW_ALPHA
-            peak_label_y_position = utils.DEFAULT_PEAK_LABEL_POSN
-        elif new_utils.generic_type == 'normalised':
-            glow_alpha = utils.NORM_GLOW_ALPHA
-            peak_label_y_position = utils.NORM_PEAK_LABEL_POSN
+        if scale_mode == 'raw':
+            glow_alpha = helper_utils.DEFAULT_GLOW_ALPHA
+            peak_label_y_position = helper_utils.DEFAULT_PEAK_LABEL_POSN
+        elif scale_mode == 'normalize':
+            glow_alpha = helper_utils.NORM_GLOW_ALPHA
+            peak_label_y_position = helper_utils.NORM_PEAK_LABEL_POSN
 
     # --- Peak Detection ---
     if peak_wavelengths is not None:
@@ -79,10 +85,10 @@ def plot(
         raw_min = df_plot_data[detection_col].min()
         raw_max = df_plot_data[detection_col].max()
         raw_range = raw_max - raw_min
-        if new_utils.generic_type=='raw':
-            prominence_percentage = utils.DEFAULT_PROM_PERC
-        if new_utils.generic_type == 'normalised':
-            prominence_percentage = utils.NORM_PROM_PERC
+        if scale_mode == 'raw':
+            prominence_percentage = helper_utils.DEFAULT_PROM_PERC
+        if scale_mode == 'normalize':
+            prominence_percentage = helper_utils.NORM_PROM_PERC
         dynamic_prominence = prominence_percentage * (raw_range if raw_range != 0 else 1.0)
         peaks, _ = find_peaks(df_plot_data[helper_utils.INT_col], prominence=dynamic_prominence)
     
@@ -90,7 +96,7 @@ def plot(
     peak_ints = [float(df_plot_data.iloc[index]["Norm_Int"]) for index in peaks]
     init_peak_label_y_posn = peak_label_y_position
     try:
-        label_ys = utils.compute_label_positions(
+        label_ys = helper_utils.compute_label_positions(
             peak_nms,
             intensities=peak_ints,
             base_y=init_peak_label_y_posn,
@@ -131,7 +137,7 @@ def plot(
     print(f"DEBUG: max_label_y = {max(label_ys) if label_ys else 'N/A'}")
 
     try:
-        label_ys = utils.compute_label_positions(
+        label_ys = helper_utils.compute_label_positions(
             peak_nms,
             intensities=peak_ints,
             base_y=peak_label_y_position,   # now uses updated value
@@ -150,7 +156,7 @@ def plot(
     for _idx, _row in df_plot_data.iterrows():
         _nm = float(_row[nm_col])
         _ni = float(_row.get('Norm_Int', 0.0))
-        _base_rgb = utils.wavelength_to_rgb(_nm)
+        _base_rgb = helper_utils.rgb(_nm)
         _final_scale = new_utils.final_scale(min_brightness, _ni)
         _color = (_base_rgb[0] * _final_scale, _base_rgb[1] * _final_scale, _base_rgb[2] * _final_scale)
         _width_mult = float(_row.get('_width_mult', 1.0))
@@ -164,16 +170,16 @@ def plot(
     for j, peak_index in enumerate(peaks):
         peak_nm = df_plot_data.iloc[peak_index][nm_col]
         peak_norm_int = df_plot_data.iloc[peak_index]['Norm_Int']
-        base_rgb = utils.wavelength_to_rgb(peak_nm)
+        base_rgb = helper_utils.rgb(peak_nm)
 
         # Emphasize peaks: gentle gamma + emphasis multiplier for labeled peaks
         _peak_gamma = 0.8
-        if has_any_nist or new_utils.generic_type == 'raw':
-            _peak_emphasis = utils.DEFAULT_PEAK_EMPHASIS
-            min_brightness = utils.DEFAULT_MIN_BRIGHT
-        elif new_utils.generic_type == 'normalised':
-            _peak_emphasis = utils.NORM_PEAK_EMPHASIS
-            min_brightness = utils.NORM_MIN_BRIGHT
+        if has_any_nist or scale_mode == 'raw':   
+            _peak_emphasis = helper_utils.DEFAULT_PEAK_EMPHASIS
+            min_brightness = helper_utils.DEFAULT_MIN_BRIGHT
+        elif scale_mode == 'normalize':
+            _peak_emphasis = helper_utils.NORM_PEAK_EMPHASIS
+            min_brightness = helper_utils.NORM_MIN_BRIGHT
         pre_int_scale = min_brightness + (1 - min_brightness) * (peak_norm_int ** _peak_gamma)
         final_int_scale = min(1.0, pre_int_scale * _peak_emphasis)
         color_rgb = new_utils.colored_rgb(base_rgb, final_int_scale)
@@ -245,19 +251,49 @@ def plot(
                 path_effects=[pe.withStroke(linewidth=1.5, foreground="black")],
             )
 
-    if has_any_nist or new_utils.generic_type == 'raw':
+    if has_any_nist or scale_mode == 'raw':     # scale_mode == 'raw':
         pad = 15
     else:
         pad = 10
     plt.tight_layout(rect=[0, 0, 1, 0.92])
 
-    if new_utils.generic_type is not None:
-        plt.title(f'{new_utils.generic_type.capitalize()} Emission Spectrum Visualization ({new_utils.mode.capitalize()} Mode)', color=new_utils.colour, y=0.98, pad=pad)
+    '''
+
+    # should go in new_utils?
+
+    # Title logic: custom > random fallback > skip
+    if title and str(title).strip():
+        plt.title(str(title).strip(), color=new_utils.colour, y=0.98, pad=pad)
+    if random_title:
+        plt.title(new_utils.generate_random_title(), color=new_utils.colour, y=0.98, pad=pad)
+    # else: no title at all
+    '''
+
+    if scale_mode is not None:
+        plt.title(f'{scale_mode.capitalize()} Emission Spectrum Visualization', color=helper_utils.COLOUR, y=0.98, pad=pad)
     else:
-        plt.title(f'Emission Spectrum Visualization ({new_utils.mode.capitalize()} Mode)', color=new_utils.colour, y=0.98, pad=pad)
+        plt.title('Emission Spectrum Visualization', color=helper_utils.COLOUR, y=0.98, pad=pad)
     plt.subplots_adjust(top=subplots_adjust_top)
 
     print("\nDEBUG: fig height = ", fig.get_figheight(), "\n current needle height = ", current_peak_render_height)
+
+
+    if save_path:
+        try:
+            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
+        except Exception:
+            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
+
+
+    '''
+    # Save the plot if a save_path is provided
+    if save_path:
+        try:
+            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
+        except Exception:
+            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
+    '''
+
     return fig, ax
 
 
@@ -265,11 +301,20 @@ def plot(
 # Other Plot Functions
 # =========================
 
-def gaussian_iteration(df_plot_data, peak_wavelengths=None,):
+def gaussian_iteration(
+        df_plot_data, 
+        show_peak_labels,
+        show_label_colour,
+        #mode,
+        save_path=None,
+        scale_by_int=False,
+        scale_mode = None, 
+        peak_wavelengths=None,
+):
     
     df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = df_plot_data,)
     if should_exit_early:
-        fig, ax = plt.subplots(figsize=helper_utils.fig_size, dpi=utils.DPI)
+        fig, ax = plt.subplots(figsize=helper_utils.fig_size, dpi=helper_utils.DPI)
         ax.set_axis_off()
         print("Ending Rendering Early.")
         return fig
@@ -286,14 +331,13 @@ def gaussian_iteration(df_plot_data, peak_wavelengths=None,):
             peaks_indices.append(idx)
         peaks_indices = sorted(set(peaks_indices))
     elif has_any_nist:
-        peaks_indices = peaks_indices, properties = find_peaks(df_plot_data['_adj_int'], prominence=utils.DEFAULT_PROM_PERC)
+        peaks_indices = peaks_indices, _properties = find_peaks(df_plot_data['_adj_int'], prominence=helper_utils.DEFAULT_PROM_PERC) 
     else:
-        dyn_prominence = new_utils.dynamic_prominence(helper_utils.prominence, prep_utils.int_range)
-        peaks_indices, properties = find_peaks(df_plot_data[helper_utils.INT_col], prominence=dyn_prominence)
+        dyn_prominence = new_utils.dynamic_prominence(helper_utils.DEFAULT_PROM_PERC, prep_utils.int_range)
+        peaks_indices, _properties = find_peaks(df_plot_data[helper_utils.INT_col], prominence=dyn_prominence)
 
     int_vals = df_plot_data['_raw_int'].values
     y_max = int_vals.max()
-    rounded_y_max = new_utils.round_to_multiple(y_max, 50)        # this is what y_max should be
 
     # Create a new, denser wavelength array for plotting the synthetic spectrum
     x_synthetic = np.linspace(400, 750, 1000) # 1000 points for a smooth synthetic curve
@@ -324,11 +368,7 @@ def gaussian_iteration(df_plot_data, peak_wavelengths=None,):
         wavelength_start = x_synthetic[i]
         wavelength_end = x_synthetic[i+1]
         base_rgb = helper_utils.rgb(wavelength_start, gamma=helper_utils.gamma_factor)
-        if new_utils.mode == 'dark':
-            ALPHA = 0.1
-        if new_utils.mode == 'light':
-            ALPHA = 0.8
-        alpha = new_utils.final_scale(ALPHA, normalized_y_synthetic[i])
+        alpha = new_utils.final_scale(helper_utils.min_alpha, normalized_y_synthetic[i])
         plt.fill_between([wavelength_start, wavelength_end],
                         [0, 0],
                         [y_synthetic[i], y_synthetic[i+1]],
@@ -336,27 +376,31 @@ def gaussian_iteration(df_plot_data, peak_wavelengths=None,):
                         alpha=alpha,
                         linewidth=0)
 
-    plt.ylim (0, rounded_y_max)
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=df_plot_data, show_label_colour=show_label_colour, )
 
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=df_plot_data)
+    if save_path:
+        try:
+            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=helper_utils.DPI)
+        except Exception:
+            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=helper_utils.DPI)
             
     print('\n\ny lim = ', plt.ylim())
     print('\nMin y synthetic = ', min_y_synthetic, '\nmax y synthetic = ', max_y_synthetic, '\n y max (from int_vals) = ', y_max, "\nnorm'd y synth = ", normalized_y_synthetic[i])
 
 
 
-def line_plot_iteration(data_df):
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=data_df)
+def line_plot_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=data_df, show_label_colour=show_label_colour)
 
     for i in range(len(data_df) - 1):
         wavelength_start = float(data_df.iloc[i][helper_utils.wl_col])
         wavelength_end = float(data_df.iloc[i+1][helper_utils.wl_col])
         int_factor = float(data_df.iloc[i]['Norm_Int'])
         base_rgb = helper_utils.rgb(wavelength_start)
-        if new_utils.SCALE_BY_INT == 'y' or new_utils.SCALE_BY_INT == 'yes':
-            final_intensity_scale = new_utils.final_scale(helper_utils.min_bright, int_factor)     # this is what does the brightness intensity
+        if scale_by_int is True:
+            final_intensity_scale = new_utils.final_scale(helper_utils.DEFAULT_MIN_BRIGHT, int_factor)     # this is what does the brightness intensity
         else:
             final_intensity_scale = 1.0
         color_rgb = new_utils.colored_rgb(base_rgb, final_intensity_scale)       # trying at 1.0, changed from final_intensity_scale. 
@@ -366,16 +410,16 @@ def line_plot_iteration(data_df):
                 linewidth=2)
     
         
-def filled_plot(data_df):
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=data_df)
+def filled_plot(data_df, show_peak_labels, show_label_colour, scale_by_int):
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=data_df, show_label_colour=show_label_colour)
 
     for i in range(len(data_df) - 1):
         wavelength_start = data_df.iloc[i][helper_utils.wl_col]
         wavelength_end = data_df.iloc[i+1][helper_utils.wl_col]
         base_rgb = helper_utils.rgb(wavelength_start)
         alpha_factor = data_df.iloc[i]['Norm_Int']  # this is what does the brightness intensity
-        if new_utils.SCALE_BY_INT == 'y' or new_utils.SCALE_BY_INT == 'yes':
+        if scale_by_int is True:
             alpha = new_utils.final_scale(helper_utils.min_alpha, alpha_factor)
         else:
             alpha = 1.0    # for NO dimming, alpha has to = 1.0. want this to be optional for filled plots.
@@ -393,13 +437,13 @@ def filled_plot(data_df):
                     color=base_rgb,
                     linewidth=2) # Thicker line for better visibility on top of fill        # this should only be for non-smoothed
             
-def scatter_iteration(data_df):
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=data_df)
+def scatter_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=data_df, show_label_colour=show_label_colour)
 
     alpha_factor = data_df['Norm_Int']
     sizes = helper_utils.base_marker_size + (helper_utils.max_marker_size_factor * alpha_factor)
-    if new_utils.SCALE_BY_INT == 'y' or new_utils.SCALE_BY_INT == 'yes':
+    if scale_by_int is True:
         alphas = new_utils.final_scale(helper_utils.min_alpha_scatter, alpha_factor)       # this does the dimming
     else:
         alphas = 1.0
@@ -407,7 +451,7 @@ def scatter_iteration(data_df):
     for i in range(len(data_df)):
         wavelength = data_df.iloc[i][helper_utils.wl_col]
         r, g, b = helper_utils.rgb(wavelength)
-        if new_utils.SCALE_BY_INT == 'y' or new_utils.SCALE_BY_INT == 'yes':
+        if scale_by_int is True:
             a = alphas.iloc[i]
         else:
             a = alphas
@@ -421,21 +465,18 @@ def scatter_iteration(data_df):
         label='Emission Data'
     )
 
-def bar_iteration(data_df):
+def bar_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
     bar_colors = []
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=data_df)
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=data_df,  show_label_colour=show_label_colour)
 
     for index, row in data_df.iterrows():
         wavelength = row[helper_utils.wl_col]
         normalized_intensity = row['Norm_Int']
-        if new_utils.mode == 'dark':
-            BRIGHT = 0.1
-        if new_utils.mode == 'light':
-            BRIGHT = 0.7
+
         base_rgb = helper_utils.rgb(wavelength)
-        if new_utils.SCALE_BY_INT == 'y' or new_utils.SCALE_BY_INT == 'yes':
-            final_intensity_scale = new_utils.final_scale(BRIGHT, normalized_intensity)     # this does the dimming
+        if scale_by_int is True:
+            final_intensity_scale = new_utils.final_scale(helper_utils.DEFAULT_MIN_BRIGHT, normalized_intensity)     # this does the dimming
         else:
             final_intensity_scale = 1.0
         color_rgb = new_utils.colored_rgb(base_rgb, final_intensity_scale)        # changed to 1.0 from final_intensity_scale. want this to be optional
@@ -449,8 +490,7 @@ def bar_iteration(data_df):
     )
 
 
-def non_rgb_iteration(data_df):
+def non_rgb_iteration(data_df, show_peak_labels, show_label_colour):
     plt.plot(data_df[helper_utils.wl_col], data_df[helper_utils.INT_col], marker=None)
-
-    if new_utils.SHOW_PEAKS == 'yes':
-        new_utils.peak_labels(data_df=data_df)
+    if show_peak_labels is True:
+        new_utils.peak_labels(data_df=data_df, show_label_colour=show_label_colour)

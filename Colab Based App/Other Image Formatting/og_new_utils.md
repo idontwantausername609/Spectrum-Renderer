@@ -1,3 +1,6 @@
+# new_utils.py code before editing for webapp3 compatibility
+
+
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import math
@@ -7,6 +10,7 @@ import helper_utils
 import prep_utils
 
 #show_grid = None
+
 
 # ===============
 # From utils.py
@@ -58,7 +62,7 @@ def get_mode():
         mode = 'light'
     return mode
 
-def text_colour(mode):
+def text_colour():
     global colour
     global bg
     if mode == 'dark':
@@ -116,8 +120,8 @@ def colored_rgb(base_rgb, final_intensity_scale):
                    base_rgb[2] * final_intensity_scale)
     return colored_rgb
 
-def set_y_lim(graph_type, show_peak_labels):
-    if graph_type == 'scatter' or show_peak_labels is True:
+def set_y_lim():
+    if helper_utils.graph_type == 'scatter' or SHOW_PEAKS == 'yes':
         if prep_utils.y_max > 230:
             y_max = round_to_multiple(prep_utils.y_max, 100)
         else:
@@ -133,7 +137,7 @@ def set_y_lim(graph_type, show_peak_labels):
 # Other Image Formatiing Functions
 # ==================================
 
-def peak_labels(data_df, show_label_colour, ):
+def peak_labels(data_df):
     peaks, _ = find_peaks(data_df[helper_utils.INT_col], prominence=dynamic_prominence(helper_utils.DEFAULT_PROM_PERC, prep_utils.int_range)) # Using dynamic prominence
     # Label the identified sharp peaks
     for peak_index in peaks:
@@ -143,33 +147,30 @@ def peak_labels(data_df, show_label_colour, ):
         final_intensity_scale = 1.0
         color_rgb = colored_rgb(base_rgb, final_intensity_scale)
         
-        if show_label_colour is True: #and mode == 'dark':
+        if show_rgb_peaks == 'yes' and mode == 'dark':
             plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
                         (row[helper_utils.wl_col], row[helper_utils.INT_col]),
                         textcoords="offset points", # Offset the text
                         xytext=(0,10), # Distance from point to label
                         ha='center', # Horizontal alignment
                         color=color_rgb,        # this makes the text rgb
-                        )
-        else:
-            plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
-                        (row[helper_utils.wl_col], row[helper_utils.INT_col]),
-                        textcoords="offset points", # Offset the text
-                        xytext=(0,10), # Distance from point to label
-                        ha='center', # Horizontal alignment
-                        color = helper_utils.COLOUR,
-                        )
-'''
-        elif show_label_colour is True and mode == 'light':
+                        ) 
+        elif show_rgb_peaks == 'yes' and mode == 'light':
             plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
                         (row[helper_utils.wl_col], row[helper_utils.INT_col]),
                         textcoords="offset points", # Offset the text
                         xytext=(0,10), # Distance from point to label
                         ha='center', # Horizontal alignment
                         bbox=dict(boxstyle="round,pad=0.3", fc=color_rgb, ec=color_rgb, lw=0.5, alpha=0.7),           # this makes the bbox rgb
+                        )      
+        else:
+            plt.annotate(f"{row[helper_utils.wl_col]:.2f} nm", # Formatted nm to two decimal places
+                        (row[helper_utils.wl_col], row[helper_utils.INT_col]),
+                        textcoords="offset points", # Offset the text
+                        xytext=(0,10), # Distance from point to label
+                        ha='center', # Horizontal alignment
+                        color = colour,
                         )
-'''
-                        
 
 def axis_labels(
     fig_size = helper_utils.fig_size,
@@ -181,12 +182,12 @@ def axis_labels(
     text = None,
     y_min = 0,
     y_max = 0,
-    mode = 'dark'
 ):
     
     plt.figure(figsize=fig_size)
     ax = plt.gca()
-    text_colour(mode=mode)
+    get_mode()
+    text_colour()
     show = input("Show Grid? Yes or No").lower()
 
     if mode == 'dark':
@@ -257,7 +258,18 @@ def get_generic_type():
     print ('Rendering Type: ', generic_type)
     return generic_type
 
-def trad_spec_labels(fig, ax, x_min, x_max, figure_bg_color = helper_utils.BG, text_color = helper_utils.COLOUR):
+def trad_spec_labels(fig, ax, x_min, x_max,):
+    get_mode()
+    text_colour()
+    global figure_bg_color
+    global text_color
+
+    if mode == 'dark':
+        figure_bg_color = 'black'
+        text_color = colour
+    elif mode == 'light':
+        figure_bg_color = 'white'
+        text_color = colour
 
     fig.patch.set_facecolor(figure_bg_color)
     ax.set_facecolor('black')  
@@ -269,19 +281,4 @@ def trad_spec_labels(fig, ax, x_min, x_max, figure_bg_color = helper_utils.BG, t
     ax.tick_params(axis='x', which='minor', colors=text_color, length=4, width=0.5)
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(0,1)
-
-
-    #text_colour(mode=mode)
-
-'''
-    global figure_bg_color
-    global text_color
-
-    if mode == 'dark':
-        figure_bg_color = 'black'
-        text_color = colour
-    elif mode == 'light':
-        figure_bg_color = 'white'
-        text_color = colour
-'''
 

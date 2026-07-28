@@ -25,13 +25,13 @@
 - generate_random_title
   - new_renderer
 
-- normalize_header
+- normalize_header    #not called
   - new_loader
 
-- clean_title
+- clean_title         #not called
   - new_loader
 
-- looks_like_number
+- looks_like_number     #not called
   - new_loader
 
 - lambda_tokens

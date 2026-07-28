@@ -1,9 +1,19 @@
 import numpy as np
 import pandas as pd
-import utils
 import nist_codes
 import helper_utils
 
+
+def nist_check(data_df, force_nist=None):
+    df_data = data_df.copy()
+    helper_utils.res_col_names(data_df=data_df, nm_col=None, int_col=None,)
+    df_data[helper_utils.wl_col] = pd.to_numeric(df_data[helper_utils.wl_col], errors='coerce')
+    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
+    if has_any_nist:
+        has_nist = True
+    else:
+        has_nist = False
+    return has_nist
 
 def run_nist_check(data_df, force_nist=None):
     helper_utils.res_col_names(data_df=data_df, nm_col=None, int_col=None,)
@@ -13,8 +23,18 @@ def run_nist_check(data_df, force_nist=None):
     return df_data, has_any_nist
 
 
+def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
+    df = df.copy()
+    df['_raw_int'] = pd.to_numeric(df[int_col], errors='coerce')
+    df['_descriptor'] = ''
+    df['_intensity_mult'] = 1.0
+    df['_width_mult'] = 1.0
+    df['_include'] = True
+    df['_adj_int'] = df['_raw_int']
+    return df
 
-def prep_with_nist(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_max, apply_descriptor_adjustments = False):
+
+def prep_with_nist(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX, apply_descriptor_adjustments = False):
     global int_range
 
     df_plot_data, has_any_nist = run_nist_check(data_df=data_df)
@@ -22,7 +42,7 @@ def prep_with_nist(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_m
         df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, helper_utils.INT_col, apply_descriptor_adjustments)
         print('NIST Destriptors Detected. Preparing NIST Rendering.')
     else:
-        df_plot_data = utils.prepare_generic_spectrum(df_plot_data, helper_utils.INT_col, apply_descriptor_adjustments)
+        df_plot_data = prepare_generic_spectrum(df_plot_data, helper_utils.INT_col, apply_descriptor_adjustments)
         print('No NIST Destriptors Detected. Preparing Generic Rendering.')
 
     # parse NIST-style cells
@@ -53,7 +73,7 @@ def prep_with_nist(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_m
 
 
 
-def prep_other(data_df, x_min = helper_utils.x_min, x_max = helper_utils.x_max):
+def prep_other(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX):
     global int_range
     global y_max
 
