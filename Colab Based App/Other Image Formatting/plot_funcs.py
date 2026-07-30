@@ -20,6 +20,7 @@ int_col = '_adj_int'
 def plot(
     df_plot_data,
     scale_mode,
+    detect_columns,
     nm_col,
     has_any_nist,
     #mode,
@@ -305,6 +306,9 @@ def gaussian_iteration(
         df_plot_data, 
         show_peak_labels,
         show_label_colour,
+        detect_columns,
+        nm_col,
+        int_col,
         #mode,
         save_path=None,
         scale_by_int=False,
@@ -312,7 +316,7 @@ def gaussian_iteration(
         peak_wavelengths=None,
 ):
     
-    df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = df_plot_data,)
+    df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = df_plot_data, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     if should_exit_early:
         fig, ax = plt.subplots(figsize=helper_utils.fig_size, dpi=helper_utils.DPI)
         ax.set_axis_off()

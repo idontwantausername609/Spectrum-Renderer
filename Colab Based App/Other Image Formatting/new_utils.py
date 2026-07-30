@@ -118,12 +118,12 @@ def colored_rgb(base_rgb, final_intensity_scale):
 
 def set_y_lim(graph_type, show_peak_labels):
     if graph_type == 'scatter' or show_peak_labels is True:
-        if prep_utils.y_max > 230:
-            y_max = round_to_multiple(prep_utils.y_max, 100)
+        if prep_utils.Y_MAX > 230:
+            y_max = round_to_multiple(prep_utils.Y_MAX, 100)
         else:
-            y_max = round_to_multiple(prep_utils.y_max, 50)
+            y_max = round_to_multiple(prep_utils.Y_MAX, 50)
     else:
-        y_max = round_to_multiple(prep_utils.y_max, 50)
+        y_max = round_to_multiple(prep_utils.Y_MAX, 50)
     print('(set_y_lim)', y_max)
     return y_max
 

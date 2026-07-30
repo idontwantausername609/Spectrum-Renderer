@@ -4,23 +4,23 @@ import nist_codes
 import helper_utils
 
 
-def nist_check(data_df, force_nist=None):
+def nist_check(data_df, detect_columns, nm_col, int_col, force_nist=None):
     df_data = data_df.copy()
-    helper_utils.res_col_names(data_df=data_df, nm_col=None, int_col=None,)
+    helper_utils.res_col_names(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     df_data[helper_utils.wl_col] = pd.to_numeric(df_data[helper_utils.wl_col], errors='coerce')
     has_any_nist, nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
     if has_any_nist:
         has_nist = True
     else:
         has_nist = False
-    return has_nist
+    return has_nist, nm_col, int_col
 
-def run_nist_check(data_df, force_nist=None):
-    helper_utils.res_col_names(data_df=data_df, nm_col=None, int_col=None,)
+def run_nist_check(data_df, detect_columns, nm_col, int_col, force_nist=None):
+    helper_utils.res_col_names(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     df_data = data_df.copy()
     df_data[helper_utils.wl_col] = pd.to_numeric(df_data[helper_utils.wl_col], errors='coerce')
     has_any_nist, nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
-    return df_data, has_any_nist
+    return df_data, has_any_nist, detect_columns, nm_col, int_col
 
 
 def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
@@ -34,10 +34,10 @@ def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
     return df
 
 
-def prep_with_nist(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX, apply_descriptor_adjustments = False):
+def prep_with_nist(data_df, detect_columns, nm_col, int_col, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX, apply_descriptor_adjustments = False):
     global int_range
 
-    df_plot_data, has_any_nist = run_nist_check(data_df=data_df)
+    df_plot_data, has_any_nist, _, _, _ = run_nist_check(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     if has_any_nist:
         df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, helper_utils.INT_col, apply_descriptor_adjustments)
         print('NIST Destriptors Detected. Preparing NIST Rendering.')
@@ -57,7 +57,7 @@ def prep_with_nist(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_M
 
     # returns empty flag for empty datasets
     if df_plot_data.empty:
-        return None, True 
+        return None, True, False 
 
     # Normalize using adjusted intensity
     min_int_val = df_plot_data['_adj_int'].min()
@@ -73,11 +73,11 @@ def prep_with_nist(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_M
 
 
 
-def prep_other(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX):
+def prep_other(data_df, detect_columns, nm_col, int_col, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX):
     global int_range
-    global y_max
+    global Y_MAX
 
-    helper_utils.res_col_names(data_df=data_df, nm_col=None, int_col=None,)
+    helper_utils.res_col_names(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     df_filtered = data_df.copy()
     df_filtered = df_filtered[(df_filtered[helper_utils.wl_col] >= x_min) & (df_filtered[helper_utils.wl_col] <= x_max)].copy()
     df_filtered = df_filtered.sort_values(by=helper_utils.wl_col).reset_index(drop=True)
@@ -87,8 +87,8 @@ def prep_other(data_df, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX):
 
     int_range = max_int - min_int
     int_vals = df_filtered[helper_utils.INT_col]
-    y_max = int_vals.max()
-    print('(prep_other) ymax = ', y_max)
+    Y_MAX = int_vals.max()
+    print('(prep_other) ymax = ', Y_MAX)
 
     if int_range == 0:
         df_filtered['Norm_Int'] = 1.0

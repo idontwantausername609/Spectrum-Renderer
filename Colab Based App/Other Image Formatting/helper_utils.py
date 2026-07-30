@@ -97,6 +97,25 @@ def get_graph_type():
     return RGB_TYPE
 
 
+
+
+
+
+
+def _manual_col(data_df, value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, str) and value.isdigit():
+        idx = int(value)
+        return data_df.columns[idx]
+    return value
+
+
+
+
+
+
+
 def resolve_column(df, candidates, label):
     headers = [(str(col).strip(), str(col).strip().lower()) for col in df.columns]
 
@@ -120,17 +139,59 @@ def resolve_column(df, candidates, label):
         for keyword in keywords:
             if keyword and keyword in normalized:
                 return original
-    raise KeyError("Could not find a", label, "column. Available columns:", (df.head()))       # want this to show like print(df.head()). df.head() needs to start on a new line. 
+    raise KeyError("Could not find a", label, "column. Available columns:", (df.head()))
 
 
-def res_col_names(data_df, nm_col = None, int_col = None,):
+
+
+def res_col_names(data_df, detect_columns, nm_col, int_col):
     global wl_col
     global INT_col
-    if nm_col is None:
-        wl_col = resolve_column(data_df, lambda_tokens, "wavelength",)
-    if int_col is None:
-        INT_col = resolve_column(data_df, int_tokens, "intensity",)
-    return data_df, wl_col, INT_col
+
+    def normalize_selected_col(value):
+        if value is None:
+            return None
+
+        text = str(value).strip()
+        if text == "":
+            return None
+
+        if text.isdigit():
+            index = int(text)
+            if 0 <= index < len(data_df.columns):
+                return data_df.columns[index]
+            return None
+
+        for col in data_df.columns:
+            if str(col).strip() == text:
+                return col
+
+        for col in data_df.columns:
+            if str(col).strip().lower() == text.lower():
+                return col
+
+        return None
+
+    if detect_columns is True:
+        wl_col = normalize_selected_col(nm_col)
+        INT_col = normalize_selected_col(int_col)
+
+        print('\n\nwl col:', wl_col, '\n\nint col:', INT_col)
+
+        if wl_col is None or INT_col is None:
+            print('\n\nwl col:', wl_col, '\n\nint col:', INT_col)
+            return data_df, None, None, True
+
+        return data_df, wl_col, INT_col, False
+
+    try:
+        wl_col = resolve_column(data_df, lambda_tokens, "wavelength")
+        INT_col = resolve_column(data_df, int_tokens, "intensity")
+        return data_df, wl_col, INT_col, False
+    except KeyError:
+        return data_df, None, None, True
+
+    
 
 
 def rgb(wavelength, gamma=gamma_factor):

@@ -245,6 +245,9 @@ def set_title():
 
 def plot(
     data_df,
+    detect_columns,
+    nm_col,
+    int_col,
     force_nist = None,
     graph_type = None,
     scale_mode = 'auto',
@@ -256,26 +259,26 @@ def plot(
     scale_by_int = None,
     save_path=None,
 ):
-    df_data, has_any_nist = prep_utils.run_nist_check(data_df=data_df, force_nist=force_nist)
+    df_data, has_any_nist, _, _, _ = prep_utils.run_nist_check(data_df=data_df, detect_columns=detect_columns, force_nist=force_nist, nm_col=nm_col, int_col=int_col)
     if has_any_nist is True:
         prep_type = 'nist'
         nist_plot_type = 'g' or 'gaussian' or 't' or 'traditional'
         if nist_plot_type == 'g' or nist_plot_type == 'gaussian':
             graph_type = 'gaussian'
+            plot_funcs.gaussian_iteration(df_plot_data=df_data, detect_columns=detect_columns,show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, int_col=int_col, nm_col=nm_col)
             axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
-            plot_funcs.gaussian_iteration(df_plot_data=df_data, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, )
         if nist_plot_type =='t' or nist_plot_type == 'traditional':
             scale_mode = 'raw'
             graph_type = 'traditional'
-            trad_spec(data_df=data_df, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
+            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
 
     else:
         prep_type = 'generic'
         if graph_type == 'traditional':
-            trad_spec(data_df=data_df,  scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
+            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
 
         else:
-            data_df, should_exit_early = prep_utils.prep_other(data_df = data_df)
+            data_df, should_exit_early = prep_utils.prep_other(data_df = data_df, detect_columns=detect_columns, int_col=int_col, nm_col=nm_col)
             if should_exit_early:
                 fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=helper_utils.DPI)
                 ax.set_axis_off()
@@ -285,7 +288,7 @@ def plot(
             axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
             get_rgb_type(graph_type=graph_type)
             if rgb_type == 'yes':
-                scale_by_int=scale_by_int
+                scale_by_int=scale_by_int  # noqa: PLW0127
 
 
             if graph_type == 'bar':

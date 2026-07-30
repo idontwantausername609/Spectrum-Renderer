@@ -1,38 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <link rel="stylesheet" href="../static/style.css">
-  <script src="../static/script.js"></script>
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 
 <body>
-    
+
     <div class="container">
         <h1>Visible Spectrum Rendering</h1>
         <p class="subtitle">Upload your Excel workbook and render visible spectra with NIST descriptor support</p>
-        
+
         <form id="renderForm">
             <div class="form-group">
                 <div id="fileUpload">
                     <h2 for="file">Excel File *</h2>
                     <input type="file" id="file" name="file" accept=".xlsx,.xls,.csv" required>
-                    <div class="fine-title">(supported file formats: .xlsx, .xls, <!--.csv-->)</div>
+                    <div class="fine-title">(supported file formats: .xlsx, .xls, .csv)</div>
                 </div>
             </div>
-            
+
             <div class="form-group">
-                <div id="sheetSelect" >
+                <div id="sheetSelect">
                     <h2 for="sheet">Sheet Name (multi-select supported)</h2>
                     <select id="sheet" name="sheet" multiple size="2">
                         <option value="">Auto-detect (no selection)</option>
                     </select>
                     <div class="fine-title">Tip: hold Ctrl (Cmd on Mac) to select multiple sheets.</div>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" id="render_all_sheets" name="render_all_sheets"> Render all sheets</label>
+                        <label><input type="checkbox" id="render_all_sheets" name="render_all_sheets"> Render all
+                            sheets</label>
                     </div>
                 </div>
             </div>
-            
+
+
+
+
+            <div id="preview-section" class="section hidden">
+                <h2>Previewing First 5 Rows:</h2>
+                <div class="table-container">
+                    <table id="preview-table">
+                        <thead id="table-head"></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+                <div class="form-group" id="header-choices">
+                    <label onchange="selectHeaders()" style="display: block;">
+                        <label class="header-choices" id="header-section">
+                            <input type="checkbox" id="detect_header_rows" name="detect_columns"> Manually select columns (leave blank to auto-detect)
+                        </label>
+                    </label>
+                </div>
+            </div>
+
+
+
+
+            <div id="selector-section" class="section hidden" hidden>
+                <h2>Select Intensity and Wavelength Columns:</h2>
+                <div id="has-header-cols">
+                    <label class="header-choices" id="header-section">
+                        <input type="checkbox" id="has-headers" checked>First row contains column names
+                    </label>
+                </div>
+
+                <div class="grid-container">
+
+                    <div class="item1">
+                      <h3>Intensity Column:</h3>
+                      <div id="int-selection" class="radio-group"></div>
+                    </div>
+                
+
+                    <div class="item2">
+                      <h3>Wavelength Column:</h3>
+                      <div id="nm-selection" class="radio-group"></div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
             <div class="form-group">
                 <div id="titleGroup">
                     <h2 for="title">Spectrum Title</h2>
@@ -41,21 +91,22 @@
                         <label>
                             <input type="checkbox" name="random_title" id="random_title" value="random_title"> Generate Random Title
                         </label>
-                    </div>     
-                </div>           
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
                 <div id="graphSelection" hidden>
                     <h2 for="graphType">Graph Type *</h2>
-                    <select class="graph-type" id="graphType" name="graph_type" onchange="toggleScale()" required>               <!--style="text-align: center;"-->
+                    <select class="graph-type" id="graphType" name="graph_type" onchange="toggleScale()" required>
+                        <!--style="text-align: center;"-->
                         <optgroup id="nistPlots" label="">
-                            <option value="">--Choose Graph Type--</option> 
+                            <option value="">--Choose Graph Type--</option>
                             <option value="traditional">Traditional Plot</option>
                             <option value="gaussian">Gaussian Plot</option>
                         </optgroup>
                         <optgroup id="allPlots" label="">
-                            <option value="">--Choose Graph Type--</option>         
+                            <option value="">--Choose Graph Type--</option>
                             <option value="traditional">Traditional Plot</option>
                             <option value="line">Line Plot</option>
                             <option value="filled line">Filled Line Plot</option>
@@ -80,35 +131,37 @@
             </div>
 
             <div class="checkbox-group">
-                <div id="checkGroup" style="display: none;" onchange="labelColours()">    
+                <div id="checkGroup" style="display: none;" onchange="labelColours()">
                     <div class="peak-group">
                         <label>
-                            <input type="checkbox" name="show_peak_labels" id="show_peak_labels" value="show_peak_labels">
+                            <input type="checkbox" name="show_peak_labels" id="show_peak_labels"
+                                value="show_peak_labels">
                             Show Peak Wavelength Labels
                         </label>
                         <div id="conditionalCheckbox" style="display: none;">
                             <label>
-                                <input type="checkbox" name="show_label_colour" id="show_label_colour" value="show_label_colour">
+                                <input type="checkbox" name="show_label_colour" id="show_label_colour"
+                                    value="show_label_colour">
                                 Show Labels in Colour
                             </label>
                         </div>
                     </div>
                     <label>
-                        <input type="checkbox" name="scale_by_int" id="scale_by_int" value="scale_by_int">  
-                        Scale Brightness by Intensity 
+                        <input type="checkbox" name="scale_by_int" id="scale_by_int" value="scale_by_int">
+                        Scale Brightness by Intensity
                     </label>
-                    
+
                     <label>
-                        <input type="checkbox" name="show_grid" id="show_grid" value="show_grid">    
+                        <input type="checkbox" name="show_grid" id="show_grid" value="show_grid">
                         Show Grid
                     </label>
-                </div>         
+                </div>
             </div>
-            
+
             <button type="submit">Render Spectrum</button>
 
         </form>
-        
+
         <div id="result"></div>
     </div>
 
@@ -124,170 +177,8 @@
 
 </body>
 
-<script>
-    // File upload and sheet loading
-const fileInput = document.getElementById('file');
-const sheetSelect = document.getElementById('sheet');
-const renderForm = document.getElementById('renderForm');
-const resultDiv = document.getElementById('result');
-const renderAllCheckbox = document.getElementById('render_all_sheets');
-let availableSheets = [];
 
-fileInput.addEventListener('change', async (e) => {
-    e.preventDefault();
+<script src="https://cloudflare.com"></script>
+<script src="../static/script.js"></script>
 
-    const file = document.getElementById('file').files[0];
-    if (!file) return;
-
-    document.getElementById('graphType').selectedIndex = 0;
-    toggleScale();
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('graph_type', document.getElementById('graphType').value);        // new line
-    formData.append('show_grid', document.getElementById('show_grid').value);          //
-    if (document.getElementById('graphType').value === 'traditional'){
-        formData.append('scale_mode', document.getElementById('scaleMode').value); 
-    }
-    try {
-        const response = await fetch('/api/nistCheck', { method: 'POST', body: formData });
-        const data = await response.json();
-
-        document.getElementById('graphSelection').hidden = true;
-
-        if (data.is_nist) {
-            document.getElementById('graphSelection').hidden = false;
-            document.getElementById('nistPlots').style.display = 'flex'; 
-            document.getElementById('allPlots').style.display = 'none';
-
-            console.log("NIST rendering");
-        }
-        else{
-            document.getElementById('graphSelection').hidden = false;
-            document.getElementById('nistPlots').style.display = 'none'; 
-            document.getElementById('allPlots').style.display = 'flex'; 
-
-            console.log("generic rendering");
-        }
-
-        const sheetResponse = await fetch('/api/sheets', { method: 'POST', body: formData });
-        const sheetData = await sheetResponse.json();
-
-        availableSheets = sheetData.sheets || [];
-        sheetSelect.innerHTML = '<option value="">Auto-detect (no selection)</option>';
-        availableSheets.forEach(sheet => {
-            const option = document.createElement('option');
-            option.value = sheet;
-            option.textContent = sheet;
-            sheetSelect.appendChild(option);
-        });
-        // Uncheck render-all when loading a new file
-        if (renderAllCheckbox) renderAllCheckbox.checked = false;
-    } catch (error) {
-        resultDiv.innerHTML = `<div class="error">Error loading sheets: ${error.message}</div>`;
-    }
-});
-
-// Form submission
-renderForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const file = fileInput.files[0];
-    if (!file) {
-        resultDiv.innerHTML = '<div class="error">Please select a file</div>';
-        return;
-    }
-
-    resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Rendering...</div>';
-
-    try {
-        const title = document.getElementById('title').value;
-        const randomTitle = document.getElementById('random_title').checked;
-
-        // Determine sheets to render
-        let selectedSheets = [];
-        if (renderAllCheckbox && renderAllCheckbox.checked) {
-            selectedSheets = availableSheets.slice();
-        } else {
-            selectedSheets = Array.from(sheetSelect.selectedOptions).map(o => o.value).filter(v => v !== '');
-        }
-        if (!selectedSheets || selectedSheets.length === 0) {
-            // Auto-detect mode (single render)
-            selectedSheets = [null];
-        }
-
-        let html = '';
-        // For each selected sheet, render requested modes
-        for (const sheetName of selectedSheets) {
-            const labelSheet = sheetName || 'Auto-detected sheet';
-                const formData = new FormData();
-                formData.append('file', file);
-                if (sheetName) formData.append('sheet', sheetName);
-                formData.append('title', title);
-                formData.append('graph_type', document.getElementById('graphType').value);        // new line
-                formData.append('scale_mode', document.getElementById('scaleMode').value);
-                if (randomTitle) formData.append('random_title', 'on');
-                if (document.getElementById('show_peak_labels').checked) formData.append('show_peak_labels', 'on');
-                if (document.getElementById ('show_label_colour').checked) formData.append('show_label_colour', 'on');
-                if (document.getElementById('show_grid').checked) formData.append('show_grid', 'on');       //
-                if (document.getElementById('scale_by_int').checked) formData.append('scale_by_int', 'on');       //
-
-                const response = await fetch('/api/render', { method: 'POST', body: formData });
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Unknown error');
-                }
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                html += '<div class="image-container"><div class="image-label">' + labelSheet + ' </div><img src="' + url + '" alt="Spectrum"></div>';
-            }
-
-        resultDiv.innerHTML = html;
-    } catch (error) {
-        resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-    }
-});
-
-// Fullscreen preview modal logic
-const previewModal = document.getElementById('previewModal');
-const modalImage = document.getElementById('modalImage');
-const modalClose = document.getElementById('modalClose');
-const modalDownload = document.getElementById('modalDownload');
-const modalBackdrop = document.getElementById('modalBackdrop');
-
-function openPreview(src, filename) {
-    modalImage.src = src;
-    modalImage.alt = filename || 'Spectrum preview';
-    modalDownload.href = src;
-    modalDownload.download = filename || 'spectrum.png';
-    previewModal.classList.add('open');
-    previewModal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-}
-
-function closePreview() {
-    previewModal.classList.remove('open');
-    previewModal.setAttribute('aria-hidden', 'true');
-    modalImage.src = '';
-    document.body.style.overflow = '';
-}
-
-// Delegate click events on result images
-resultDiv.addEventListener('click', (ev) => {
-    const t = ev.target;
-    if (t && t.tagName === 'IMG') {
-        // Open preview with same object URL and filename from alt
-        openPreview(t.src, t.alt || 'spectrum.png');
-    }
-});
-
-// Close interactions
-modalClose.addEventListener('click', closePreview);
-modalBackdrop.addEventListener('click', closePreview);
-document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape' && previewModal.classList.contains('open')) {
-        closePreview();
-    }
-});
-</script>
 </html>

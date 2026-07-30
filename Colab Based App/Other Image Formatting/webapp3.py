@@ -12,6 +12,7 @@ import loader
 import renderer
 import prep_utils
 import traceback
+import helper_utils
 
 app3 = Flask(__name__)
 app3.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
@@ -39,10 +40,14 @@ def get_sheets():
 
 @app3.route('/api/nistCheck', methods=['POST'])
 def nistCheck():
-    #global is_nist
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
+
     file = request.files['file']
+    detect_columns = request.form.get('detect_columns') == 'true'
+    nm_col = request.form.get('nm_col')
+    int_col = request.form.get('int_col')
+
     try:
         file_bytes = file.read()
         file.seek(0)
@@ -51,15 +56,30 @@ def nistCheck():
         return jsonify({'error': str(e)}), 500
 
     df = renderer.load_data(file_bytes)
-    is_nist = prep_utils.nist_check(df)
-    return jsonify({'is_nist' : is_nist})
 
+    _, wl_col, INT_col, needs_manual_selection = helper_utils.res_col_names(
+        data_df=df,
+        detect_columns=detect_columns,
+        nm_col=nm_col,
+        int_col=int_col,
+    )
+
+    if needs_manual_selection:
+        return jsonify({'needs_manual_selection': True}), 200
+
+    is_nist, _, _ = prep_utils.nist_check(
+        df,
+        detect_columns=detect_columns,
+        nm_col=wl_col,
+        int_col=INT_col,
+    )
+    return jsonify({'is_nist': is_nist})
 
 @app3.route('/api/render', methods=['POST'])
 def render():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-    
+
     file = request.files['file']
     sheet_name = request.form.get('sheet', None)
     user_title = request.form.get('title', None)
@@ -67,25 +87,38 @@ def render():
     show_peak_labels = 'show_peak_labels' in request.form
     show_label_colour = 'show_label_colour' in request.form
     scale_by_int = 'scale_by_int' in request.form
-    show_grid = 'show_grid' in request.form    
-    
-    # Convert empty string sheet to None
+    show_grid = 'show_grid' in request.form
+    detect_columns = request.form.get('detect_columns') == 'true'
+    nm_col = request.form.get('nm_col')
+    int_col = request.form.get('int_col')
+
     if sheet_name == '':
         sheet_name = None
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
+
     try:
         file_bytes = file.read()
-
-        # Read Excel bytes directly into a pandas DataFrame
         df = renderer.load_data(file_bytes)
+
+        _, wl_col, INT_col, needs_manual_selection = helper_utils.res_col_names(
+            data_df=df,
+            detect_columns=detect_columns,
+            nm_col=nm_col,
+            int_col=int_col,
+        )
+
+        if needs_manual_selection:
+            return jsonify({'needs_manual_selection': True}), 200
 
         scale_mode = request.form.get('scale_mode', 'raw')
         graph_type = request.form.get('graph_type')
 
         fig = renderer.plot(
             df,
-            #has_any_nist = is_nist,
+            detect_columns=detect_columns,
+            nm_col=wl_col,
+            int_col=INT_col,
             graph_type=graph_type,
             scale_mode=scale_mode,
             show_grid=show_grid,
@@ -102,7 +135,7 @@ def render():
         plt.close(fig)
 
         return send_file(img_io, mimetype='image/png')
-    
+
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
