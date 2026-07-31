@@ -100,6 +100,8 @@ def compute_descriptor_effects(tokens, group_size=None):
         else:
             shared_hint = True  # caller may decide how to handle
 
+    #print("DEBUG: compute_descriptor_effects")
+
     return {
         "include": bool(include),
         "intensity_multiplier": float(intensity_mult),

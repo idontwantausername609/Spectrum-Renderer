@@ -2,7 +2,7 @@ import re
 import random
 import string
 import pandas as pd
-import matplotlib.ticker as ticker
+from matplotlib import ticker
 
 lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave"]
 
@@ -115,14 +115,14 @@ def wavelength_to_rgb(wavelength, gamma=0.8):
     elif wavelength >= 490 and wavelength <= 510:
         R = 0.0
         G = (1.0) ** gamma
-        B = ((-(wavelength - 510) / (510 - 490))) ** gamma
+        B = (-(wavelength - 510) / (510 - 490)) ** gamma
     elif wavelength >= 510 and wavelength <= 580:
         R = ((wavelength - 510) / (580 - 510)) ** gamma
         G = (1.0) ** gamma
         B = 0.0
     elif wavelength >= 580 and wavelength <= 645:
         R = (1.0) ** gamma
-        G = ((-(wavelength - 645) / (645 - 580))) ** gamma
+        G = (-(wavelength - 645) / (645 - 580)) ** gamma
         B = 0.0
     elif wavelength >= 645 and wavelength <= 750:
         attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
@@ -182,6 +182,7 @@ def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=
                 result[cluster_sorted[0]] = base_y
             else:
                 step = min(y_step, (max_y - base_y) / (n - 1))
+                print("step", step)
                 for pos, idx in enumerate(cluster_sorted):
                     result[idx] = base_y + pos * step
 

@@ -8,8 +8,6 @@ import helper_utils
 import io
 
 
-
-
 def load_data(file_path):
     """Automatically loads CSV or Excel files into a pandas DataFrame."""
     if not isinstance(file_path, (bytes, bytearray)):
@@ -23,7 +21,7 @@ def load_data(file_path):
         )
         combined_df = pd.concat(excel_dict.values(), ignore_index=True)
         return combined_df
-
+    
     else:
         try:
             text_content = file_path.decode('utf-8-sig') 
@@ -32,31 +30,9 @@ def load_data(file_path):
             csv_stream.seek(0)
             df = pd.read_csv(csv_stream, sep=dialect.delimiter)
             return df
-            
+
         except Exception as e:
             raise ValueError("File content could not be parsed as an XLSX or CSV file.") from e
-
-
-
-'''
-# code breaks when this is used. prep functions don't pass properly, causing KeyErrors
-def early_exit(data_df, has_any_nist, force_nist = None):
-    df_data, has_any_nist = prep_utils.run_nist_check(data_df=data_df, force_nist=force_nist)
-    if has_any_nist is True:
-        df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = df_data)
-        if should_exit_early:
-            fig, ax = plt.subplots(figsize=helper_utils.fig_size, dpi=utils.DPI)
-            ax.set_axis_off()
-            print("Ending Rendering Early.")
-            return fig
-    else:
-        data_df, should_exit_early = prep_utils.prep_other(data_df = df_data)
-        if should_exit_early:
-            fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=utils.DPI)
-            ax.set_axis_off()
-            print("Ending Rendering Early.")
-            return fig
-'''
 
 
 def trad_spec(
@@ -64,6 +40,9 @@ def trad_spec(
     #mode,
     scale_mode,
     show_peak_labels,
+    nm_col,
+    int_col,
+    detect_columns,
     title = None,
     random_title = None,
     show_grid = False,
@@ -72,89 +51,24 @@ def trad_spec(
     fig_size=helper_utils.FIG_SIZE, 
     dpi=helper_utils.DPI,
 ):
-    df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = data_df)
+    df_plot_data, should_exit_early, has_any_nist = prep_utils.prep_with_nist(data_df = data_df, nm_col=nm_col, int_col=int_col, detect_columns=detect_columns)
     if should_exit_early:
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
         ax.set_axis_off()
         print("Ending Rendering Early.")
         return fig
-    fig, ax = plot_funcs.plot(
+    fig, ax = plot_funcs.plot_trad(
         df_plot_data = df_plot_data, 
         nm_col = helper_utils.wl_col, 
         has_any_nist=has_any_nist,
         #mode=mode,
         scale_mode=scale_mode,
         show_peak_labels=show_peak_labels,
+        detect_columns=detect_columns,
+        title=title,
+        random_title=random_title,
     )
     return fig
-
-
-
-def plot_other_spec(data_df, save_path=None):
-    helper_utils.get_graph_type()       # needs to be able to use graph_type from webapp3.py / index.html
-    if helper_utils.graph_type == 'traditional':
-        trad_spec(data_df=data_df)
-    else:
-        data_df, should_exit_early = prep_utils.prep_other(data_df = data_df)
-        if should_exit_early:
-            fig, ax = plt.subplots(figsize=new_utils.fig_size, dpi=helper_utils.DPI)
-            ax.set_axis_off()
-            print("Ending Rendering Early.")
-            return fig
-        new_utils.show_peak_labels()
-        new_utils.axis_labels()
-
-        if helper_utils.rgb_type == 'yes':
-            new_utils.scale_by_int()
-
-        if helper_utils.graph_type == 'bar':
-            plot_funcs.bar_iteration(data_df = data_df)
-        elif helper_utils.graph_type == 'scatter':
-            plot_funcs.scatter_iteration(data_df = data_df)
-        elif helper_utils.graph_type == 'gaussian':
-            plot_funcs.gaussian_iteration(df_plot_data= data_df)
-        elif helper_utils.graph_type == 'line':
-            plot_funcs.line_plot_iteration(data_df=data_df)
-        elif helper_utils.graph_type == 'filled line':
-            plot_funcs.filled_plot(data_df = data_df)
-        elif helper_utils.graph_type == 'non rgb line':
-            plot_funcs.non_rgb_iteration(data_df=data_df)
-
-        if save_path:
-            try:
-                fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=helper_utils.dpi)
-            except Exception:
-                plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=helper_utils.dpi)
-
-
-
-def detect_prep(
-    data_df, 
-    force_nist = None, 
-    graph_type=None,
-    title=None,
-    random_title=None,
-    mode = 'dark',
-    show_peak_labels=True,
-    scale_mode = 'auto',
-):
-    df_data, has_any_nist = prep_utils.run_nist_check(data_df=data_df, force_nist=force_nist)
-    if has_any_nist is True:
-        prep_type = 'nist'
-        nist_plot_type = input("NIST Descriptors Detected. Choose NIST Graph Type: Gaussian or Traditional").lower()
-        if nist_plot_type == 'gaussian' or nist_plot_type == 'g':
-            helper_utils.graph_type = 'gaussian'
-            new_utils.axis_labels()
-            plot_funcs.gaussian_iteration(df_plot_data = df_data)
-        if nist_plot_type == 'traditional' or nist_plot_type == 'trad' or nist_plot_type == 't':
-            scale_mode = 'raw'
-            helper_utils.graph_type = 'traditional'
-            trad_spec(data_df = df_data)
-    else:
-        prep_type = 'generic'
-        plot_other_spec(data_df=df_data)
-    return prep_type, helper_utils.graph_type, scale_mode
-
 
 # ====================================================================================================================================
 
@@ -166,17 +80,16 @@ def get_rgb_type(graph_type):
         rgb_type = 'no'
 
 
-
 def axis_labels(
     graph_type,
     show_grid,
     show_peak_labels,
     title,
     random_title,
+    reverse_x,
     save_path=None,
     dpi = helper_utils.DPI,
     fig_size = helper_utils.fig_size,
-    reverse_x = helper_utils.reverse_x,
     x_min = helper_utils.X_MIN,
     x_max = helper_utils.X_MAX,
     x_title = helper_utils.X_TITLE,
@@ -199,13 +112,10 @@ def axis_labels(
     elif show_grid is False:
         plt.grid(False)
 
-    #reverse_x = (input("Reverse x-axis? Yes or No")).lower()
-    #if reverse_x == 'yes' or reverse_x == 'y':
-    #    reverse_x is True
-    #    plt.xlim(x_max, x_min)
-    #else:
-    #    reverse_x is False
-    #    plt.xlim(x_min, x_max)
+    if reverse_x is True:
+        plt.xlim(x_max, x_min)
+    else:
+        plt.xlim(x_min, x_max)
 
     y_max = new_utils.set_y_lim(graph_type=graph_type, show_peak_labels=show_peak_labels)
 
@@ -228,26 +138,12 @@ def axis_labels(
         except Exception:
             plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
 
-
-'''
-# need to make this so that it works with web code
-
-def set_title():
-    t = input("Choose: Custom or Random Title?").lower()
-    if t == 'c':
-        title = input("Enter Custom Title")
-        plt.title(str(title).strip(), color=new_utils.colour, y=1.0, pad=10)
-    if t == 'r':
-        plt.title(new_utils.generate_random_title(), color=new_utils.colour, y=1.0, pad=10)
-'''
-
-
-
 def plot(
     data_df,
     detect_columns,
     nm_col,
     int_col,
+    reverse_x,
     force_nist = None,
     graph_type = None,
     scale_mode = 'auto',
@@ -260,22 +156,21 @@ def plot(
     save_path=None,
 ):
     df_data, has_any_nist, _, _, _ = prep_utils.run_nist_check(data_df=data_df, detect_columns=detect_columns, force_nist=force_nist, nm_col=nm_col, int_col=int_col)
+
     if has_any_nist is True:
         prep_type = 'nist'
         nist_plot_type = 'g' or 'gaussian' or 't' or 'traditional'
-        if nist_plot_type == 'g' or nist_plot_type == 'gaussian':
-            graph_type = 'gaussian'
+        if graph_type == 'gaussian':
             plot_funcs.gaussian_iteration(df_plot_data=df_data, detect_columns=detect_columns,show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, int_col=int_col, nm_col=nm_col)
-            axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
-        if nist_plot_type =='t' or nist_plot_type == 'traditional':
+            axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title, reverse_x=reverse_x)
+        if graph_type == 'traditional':
             scale_mode = 'raw'
-            graph_type = 'traditional'
-            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
+            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title, nm_col=nm_col, int_col=int_col)
 
     else:
         prep_type = 'generic'
         if graph_type == 'traditional':
-            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
+            trad_spec(data_df=data_df, detect_columns=detect_columns, scale_mode=scale_mode, show_peak_labels=show_peak_labels, title=title, random_title=random_title, nm_col=nm_col, int_col=int_col)
 
         else:
             data_df, should_exit_early = prep_utils.prep_other(data_df = data_df, detect_columns=detect_columns, int_col=int_col, nm_col=nm_col)
@@ -285,21 +180,21 @@ def plot(
                 print("Ending Rendering Early.")
                 return fig
 
-            axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title)
+            axis_labels(graph_type=graph_type, show_grid=show_grid, show_peak_labels=show_peak_labels, title=title, random_title=random_title, reverse_x=reverse_x)
             get_rgb_type(graph_type=graph_type)
             if rgb_type == 'yes':
-                scale_by_int=scale_by_int  # noqa: PLW0127
-
+                scale_by_int=scale_by_int
 
             if graph_type == 'bar':
                 plot_funcs.bar_iteration(data_df = data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, scale_by_int=scale_by_int)
             elif graph_type == 'scatter':
                 plot_funcs.scatter_iteration(data_df = data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, scale_by_int=scale_by_int)
             elif graph_type == 'gaussian':
-                plot_funcs.gaussian_iteration(df_plot_data=data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, scale_by_int=False)
+                plot_funcs.gaussian_iteration(df_plot_data=df_data, detect_columns=detect_columns,show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, int_col=int_col, nm_col=nm_col, scale_by_int=False)
             elif graph_type == 'line':
                 plot_funcs.line_plot_iteration(data_df = data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, scale_by_int=scale_by_int)
             elif graph_type == 'filled line':
                 plot_funcs.filled_plot(data_df = data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour, scale_by_int=scale_by_int)
             elif graph_type == 'non rgb line':
                 plot_funcs.non_rgb_iteration(data_df = data_df, show_peak_labels=show_peak_labels, show_label_colour=show_label_colour,)
+

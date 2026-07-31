@@ -6,7 +6,6 @@
 </head>
 
 <body>
-
     <div class="container">
         <h1>Visible Spectrum Rendering</h1>
         <p class="subtitle">Upload your Excel workbook and render visible spectra with NIST descriptor support</p>
@@ -34,9 +33,6 @@
                 </div>
             </div>
 
-
-
-
             <div id="preview-section" class="section hidden">
                 <h2>Previewing First 5 Rows:</h2>
                 <div class="table-container">
@@ -48,14 +44,12 @@
                 <div class="form-group" id="header-choices">
                     <label onchange="selectHeaders()" style="display: block;">
                         <label class="header-choices" id="header-section">
-                            <input type="checkbox" id="detect_header_rows" name="detect_columns"> Manually select columns (leave blank to auto-detect)
+                            <input type="checkbox" id="detect_header_rows" name="detect_columns"> Manually select
+                            columns (leave blank to auto-detect)
                         </label>
                     </label>
                 </div>
             </div>
-
-
-
 
             <div id="selector-section" class="section hidden" hidden>
                 <h2>Select Intensity and Wavelength Columns:</h2>
@@ -68,20 +62,17 @@
                 <div class="grid-container">
 
                     <div class="item1">
-                      <h3>Intensity Column:</h3>
-                      <div id="int-selection" class="radio-group"></div>
+                        <h3>Intensity Column:</h3>
+                        <div id="int-selection" class="radio-group"></div>
                     </div>
-                
+
 
                     <div class="item2">
-                      <h3>Wavelength Column:</h3>
-                      <div id="nm-selection" class="radio-group"></div>
+                        <h3>Wavelength Column:</h3>
+                        <div id="nm-selection" class="radio-group"></div>
                     </div>
                 </div>
             </div>
-
-
-
 
             <div class="form-group">
                 <div id="titleGroup">
@@ -89,7 +80,8 @@
                     <input type="text" id="title" name="title" placeholder="e.g., Oxygen">
                     <div class="checkbox-group">
                         <label>
-                            <input type="checkbox" name="random_title" id="random_title" value="random_title"> Generate Random Title
+                            <input type="checkbox" name="random_title" id="random_title" value="random_title"> Generate
+                            Random Title
                         </label>
                     </div>
                 </div>
@@ -155,13 +147,14 @@
                         <input type="checkbox" name="show_grid" id="show_grid" value="show_grid">
                         Show Grid
                     </label>
+                    <label>
+                        <input type="checkbox" name="reverse_x" id="reverse_x" value="reverse_x">
+                        Reverse X-Axis
+                    </label>
                 </div>
             </div>
-
             <button type="submit">Render Spectrum</button>
-
         </form>
-
         <div id="result"></div>
     </div>
 
@@ -174,9 +167,7 @@
             <a id="modalDownload" class="modal-download" download>Download</a>
         </div>
     </div>
-
 </body>
-
 
 <script src="https://cloudflare.com"></script>
 <script src="../static/script.js"></script>

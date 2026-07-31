@@ -21,7 +21,7 @@ def _open_workbook_from_input(input_source):
     elif hasattr(input_source, 'read'):
         try:
             input_source.seek(0)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         file_bytes = input_source.read()
         
@@ -77,6 +77,6 @@ def list_sheets(excel_file_path):
     sheets = [ws.title for ws in wb.worksheets]
     try:
         wb.close()
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     return sheets

@@ -31,6 +31,7 @@ function toggleScale() {
     const scaleByIntCheckbox = document.getElementById('scale_by_int');
     const showGridCheckbox = document.getElementById('show_grid');
     const checkGroup = document.getElementById('checkGroup');
+    const revCheckbox = document.getElementById('reverse_x');
 
     if (!graphType) {
         checkGroup.style.display = 'none';
@@ -41,21 +42,23 @@ function toggleScale() {
         checkGroup.style.display = 'flex'
         scaleByIntCheckbox.parentElement.style.display = 'none';
         showGridCheckbox.parentElement.style.display = 'none';
+        revCheckbox.parentElement.style.display = 'none'
     }
     else if (graphType === "gaussian" || graphType === "non rgb line") {
         divScale.hidden = true;
         showGridCheckbox.parentElement.style.display = 'flex';
         checkGroup.style.display = 'flex'
         scaleByIntCheckbox.parentElement.style.display = 'none';
+        revCheckbox.parentElement.style.display = 'flex'
     }
     else {
         divScale.hidden = true;
         scaleByIntCheckbox.parentElement.style.display = 'flex';
         showGridCheckbox.parentElement.style.display = 'flex';
         checkGroup.style.display = 'flex'
+        revCheckbox.parentElement.style.display = 'flex'
     }
 }
-
 
 function labelColours() {
     var peakCheckbox = document.getElementById('show_peak_labels');
@@ -79,13 +82,11 @@ function selectHeaders() {
 
     if (detectCheckbox.checked == true) {
         colGroup.hidden = false;
-        
     }
     else {
         colGroup.hidden = true;
     }
 }
-
 
 function sheetForm() {
     const fileUpload = document.getElementById('file');
@@ -103,7 +104,6 @@ function sheetForm() {
 }
 
 
-
 function loadSheetJS(callback) {
     if (typeof XLSX !== "undefined") {
         callback();
@@ -117,7 +117,7 @@ function loadSheetJS(callback) {
         callback();
     };
     script.onerror = () => {
-        // Ultimate fallback: Try SheetJS Official Mirror if cdnjs fails
+
         const fallbackScript = document.createElement("script");
         fallbackScript.src = "https://sheetjs.com";
         fallbackScript.onload = callback;
@@ -125,9 +125,6 @@ function loadSheetJS(callback) {
     };
     document.head.appendChild(script);
 }
-
-
-
 
 function parseCSVTo2DArray(text) {
     const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
@@ -149,150 +146,119 @@ function parseCSVTo2DArray(text) {
 }
 
 
-
-
-
 function processRawData(dataGrid) {
     if (!dataGrid || dataGrid.length === 0) return;
-    
     const hasHeaders = document.getElementById("has-headers").checked;
     const maxCols = Math.max(...dataGrid.map((row) => (row ? row.length : 0)));
     if (maxCols === 0) return;
-  
+
     if (hasHeaders) {
-      // Scenario A: First row contains text names
-      const firstRow = dataGrid[0] || [];
-      globalHeaders = [...firstRow];
-      globalRows = dataGrid.slice(1); // Pure data rows
-  
-      // Fallback for empty or blank headers
-      for (let i = 0; i < maxCols; i++) {
-        if (!globalHeaders[i] || globalHeaders[i].toString().trim() === "") {
-          globalHeaders[i] = `Column ${i + 1}`;
+        const firstRow = dataGrid[0] || [];
+        globalHeaders = [...firstRow];
+        globalRows = dataGrid.slice(1);
+
+        for (let i = 0; i < maxCols; i++) {
+            if (!globalHeaders[i] || globalHeaders[i].toString().trim() === "") {
+                globalHeaders[i] = `Column ${i + 1}`;
+            }
         }
-      }
     } else {
-      // Scenario B: File has no headers (pure numbers from row 0)
-      globalHeaders = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
-      globalRows = dataGrid; 
+        globalHeaders = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
+        globalRows = dataGrid;
     }
-  
-    // --- FIX HERE: Strip CSS classes on file load so your selectHeaders() function can control visibility ---
+
     const selectorSection = document.getElementById("selector-section");
     if (selectorSection) selectorSection.classList.remove("hidden");
-    
     const previewSec = document.getElementById("preview-section");
     if (previewSec) previewSec.classList.remove("hidden");
-    // -------------------------------------------------------------------------------------------------------
-  
-    // Always force the table preview to render immediately so data shows up on load
     updateTablePreview();
-  
-    // Always pre-build the radio selectors behind the scenes so they are ready when revealed
     setupColumnSelector();
-  }
+}
 
-// 2. Construct manual radio selectors dynamically
 function setupColumnSelector() {
-  const intContainer = document.getElementById("int-selection");
-  const nmContainer = document.getElementById("nm-selection");
+    const intContainer = document.getElementById("int-selection");
+    const nmContainer = document.getElementById("nm-selection");
+    const prevIntSelected = document.querySelector('input[name="intensity-column"]:checked')?.value;
+    const prevNmSelected = document.querySelector('input[name="wavelength-column"]:checked')?.value;
 
-  // Save current selections before wiping out containers to avoid dropping state
-  const prevIntSelected = document.querySelector('input[name="intensity-column"]:checked')?.value;
-  const prevNmSelected = document.querySelector('input[name="wavelength-column"]:checked')?.value;
+    intContainer.innerHTML = "";
+    nmContainer.innerHTML = "";
 
-  intContainer.innerHTML = "";
-  nmContainer.innerHTML = "";
+    globalHeaders.forEach((header, index) => {
+        const intLabel = document.createElement("label");
+        intLabel.className = "radio-label";
+        const intRadio = document.createElement("input");
+        intRadio.type = "radio";
+        intRadio.name = "intensity-column";
+        intRadio.value = index + 1;
+        intRadio.checked = prevIntSelected ? (parseInt(prevIntSelected, 10) === index + 1) : (index === 0);
+        intRadio.addEventListener("change", updateTablePreview);
+        intLabel.appendChild(intRadio);
+        intLabel.appendChild(document.createTextNode(` ${header}`));
+        intContainer.appendChild(intLabel);
 
-  globalHeaders.forEach((header, index) => {
-    // Generate Intensity Column Radios
-    const intLabel = document.createElement("label");
-    intLabel.className = "radio-label";
-    const intRadio = document.createElement("input");
-    intRadio.type = "radio";
-    intRadio.name = "intensity-column";
-    intRadio.value = index+1;
-    intRadio.checked = prevIntSelected ? (parseInt(prevIntSelected, 10) === index + 1) : (index === 0);
-    intRadio.addEventListener("change", updateTablePreview);
-    intLabel.appendChild(intRadio);
-    intLabel.appendChild(document.createTextNode(` ${header}`));
-    intContainer.appendChild(intLabel);
-
-    // Generate Wavelength Column Radios
-    const nmLabel = document.createElement("label");
-    nmLabel.className = "radio-label";
-    const nmRadio = document.createElement("input");
-    nmRadio.type = "radio";
-    nmRadio.name = "wavelength-column";
-    nmRadio.value = index+1;
-    nmRadio.checked = prevNmSelected ? (parseInt(prevNmSelected, 10) === index + 1) : (index === 1);
-    nmRadio.addEventListener("change", updateTablePreview);
-    nmLabel.appendChild(nmRadio);
-    nmLabel.appendChild(document.createTextNode(` ${header}`));
-    nmContainer.appendChild(nmLabel);
-  });
-
-  updateTablePreview();
+        // Generate Wavelength Column Radios
+        const nmLabel = document.createElement("label");
+        nmLabel.className = "radio-label";
+        const nmRadio = document.createElement("input");
+        nmRadio.type = "radio";
+        nmRadio.name = "wavelength-column";
+        nmRadio.value = index + 1;
+        nmRadio.checked = prevNmSelected ? (parseInt(prevNmSelected, 10) === index + 1) : (index === 1);
+        nmRadio.addEventListener("change", updateTablePreview);
+        nmLabel.appendChild(nmRadio);
+        nmLabel.appendChild(document.createTextNode(` ${header}`));
+        nmContainer.appendChild(nmLabel);
+    });
+    updateTablePreview();
 }
 
 function updateTablePreview() {
     if (!globalHeaders || globalHeaders.length === 0) return;
-  
-    // The preview table should ALWAYS show all columns from the raw file
     const activeIndexes = globalHeaders.map((_, index) => index);
-  
-    // Render Table Headers
     const thead = document.getElementById("table-head");
     thead.innerHTML = "";
     const trHead = document.createElement("tr");
-  
+
     activeIndexes.forEach((idx) => {
-      const th = document.createElement("th");
-      th.textContent = globalHeaders[idx];
-      trHead.appendChild(th);
+        const th = document.createElement("th");
+        th.textContent = globalHeaders[idx];
+        trHead.appendChild(th);
     });
     thead.appendChild(trHead);
-  
-    // Render Table Body Preview Rows (Top 5 data rows)
     const tbody = document.getElementById("table-body");
     tbody.innerHTML = "";
-  
+
     if (!globalRows || globalRows.length === 0) return;
-  
+
     globalRows.slice(0, 5).forEach((row) => {
-      if (!row) return;
-      const tr = document.createElement("tr");
-  
-      activeIndexes.forEach((idx) => {
-        const td = document.createElement("td");
-        td.textContent = row[idx] !== undefined ? row[idx] : "";
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
+        if (!row) return;
+        const tr = document.createElement("tr");
+
+        activeIndexes.forEach((idx) => {
+            const td = document.createElement("td");
+            td.textContent = row[idx] !== undefined ? row[idx] : "";
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
     });
-  }
+}
 
-// 4. Wire up the header checkbox listener safely to re-pivot data arrays on configuration shifts
 document.getElementById("has-headers").addEventListener("change", () => {
-  if (globalRows && globalRows.length > 0) {
-    const hasHeaders = document.getElementById("has-headers").checked;
-    let fallbackGrid = [];
+    if (globalRows && globalRows.length > 0) {
+        const hasHeaders = document.getElementById("has-headers").checked;
+        let fallbackGrid = [];
 
-    if (hasHeaders) {
-      fallbackGrid = [globalHeaders, ...globalRows];
-    } else {
-      const isGeneric = globalHeaders[0] === "Column 1";
-      fallbackGrid = isGeneric ? [...globalRows] : [globalHeaders, ...globalRows];
+        if (hasHeaders) {
+            fallbackGrid = [globalHeaders, ...globalRows];
+        } else {
+            const isGeneric = globalHeaders[0] === "Column 1";
+            fallbackGrid = isGeneric ? [...globalRows] : [globalHeaders, ...globalRows];
+        }
+
+        processRawData(fallbackGrid);
     }
-
-    processRawData(fallbackGrid);
-  }
 });
-
-
-
-
-
 
 function openPreview(src, filename) {
     modalImage.src = src;
@@ -312,12 +278,7 @@ function closePreview() {
 }
 
 
-
-
-
 // Script
-
-
 loadSheetJS(() => {
     document
         .getElementById("has-headers")
@@ -367,7 +328,6 @@ loadSheetJS(() => {
         });
 });
 
-
 // File upload and sheet loading
 fileInput.addEventListener('change', async (e) => {
     e.preventDefault();
@@ -384,32 +344,24 @@ fileInput.addEventListener('change', async (e) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('detect_columns', document.getElementById('detect_header_rows').checked ? 'true' : 'false');
-    
-    // 1. Always look for the radio button choices first
     const checkedInt = document.querySelector('input[name="intensity-column"]:checked')?.value;
     const checkedNm = document.querySelector('input[name="wavelength-column"]:checked')?.value;
-    
     let intCol = "";
     let nmCol = "";
-    
-    // 2. Decide values based on the manual selection state
+
     if (document.getElementById('detect_header_rows').checked === true) {
-      // Manual mode: Use exactly what the user picked (fallback to empty if unselected)
-      intCol = checkedInt || "";
-      nmCol = checkedNm || "";
+        intCol = checkedInt || "";
+        nmCol = checkedNm || "";
     } else {
-      // Auto-detect mode: Pass a clear fallback indicator (like "auto") 
-      // so your Python code knows explicitly to trigger its scanner
-      intCol = "auto";
-      nmCol = "auto";
+        intCol = "auto";
+        nmCol = "auto";
     }
-    
-    // 3. ALWAYS append the variables to the form data packet
-    formData.append('int_col', intCol); 
-    formData.append('nm_col', nmCol); 
-    
+
+    formData.append('int_col', intCol);
+    formData.append('nm_col', nmCol);
     formData.append('graph_type', document.getElementById('graphType').value);        // new line
     formData.append('show_grid', document.getElementById('show_grid').value);          //
+    if (document.getElementById('reverse_x').checked) formData.append('reverse_x', 'on');
     if (document.getElementById('graphType').value === 'traditional') {
         formData.append('scale_mode', document.getElementById('scaleMode').value);
     }
@@ -424,7 +376,6 @@ fileInput.addEventListener('change', async (e) => {
             document.getElementById('detect_header_rows').checked = true;
             selectHeaders();
 
-            // Remove nistPlots, ensure allPlots is present
             var nistPlots = document.getElementById('nistPlots');
             var allPlots = document.getElementById('allPlots');
             var select = document.getElementById('graphType');
@@ -511,7 +462,7 @@ fileInput.addEventListener('change', async (e) => {
             option.textContent = sheet;
             sheetSelect.appendChild(option);
         });
-        // Uncheck render-all when loading a new file
+
         if (renderAllCheckbox) renderAllCheckbox.checked = false;
     } catch (error) {
         resultDiv.innerHTML = `<div class="error">Error loading sheets: ${error.message}</div>`;
@@ -540,7 +491,6 @@ renderForm.addEventListener('submit', async (e) => {
             selectedSheets = Array.from(sheetSelect.selectedOptions).map(o => o.value).filter(v => v !== '');
         }
         if (!selectedSheets || selectedSheets.length === 0) {
-            // Auto-detect mode (single render)
             selectedSheets = [null];
         }
 
@@ -550,37 +500,31 @@ renderForm.addEventListener('submit', async (e) => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('detect_columns', document.getElementById('detect_header_rows').checked ? 'true' : 'false');
-    
-            // 1. Always look for the radio button choices first
+
             const checkedInt = document.querySelector('input[name="intensity-column"]:checked')?.value;
             const checkedNm = document.querySelector('input[name="wavelength-column"]:checked')?.value;
-            
+
             let intCol = "";
             let nmCol = "";
-            
-            // 2. Decide values based on the manual selection state
+
             if (document.getElementById('detect_header_rows').checked === true) {
-              // Manual mode: Use exactly what the user picked (fallback to empty if unselected)
-              intCol = checkedInt || "";
-              nmCol = checkedNm || "";
+
+                intCol = checkedInt || "";
+                nmCol = checkedNm || "";
             } else {
-              // Auto-detect mode: Pass a clear fallback indicator (like "auto") 
-              // so your Python code knows explicitly to trigger its scanner
-              intCol = "auto";
-              nmCol = "auto";
+                intCol = "auto";
+                nmCol = "auto";
             }
-            
-            // 3. ALWAYS append the variables to the form data packet
-            formData.append('int_col', intCol); 
-            formData.append('nm_col', nmCol); 
 
-
+            formData.append('int_col', intCol);
+            formData.append('nm_col', nmCol);
             if (sheetName) formData.append('sheet', sheetName);
             formData.append('title', title);
             formData.append('graph_type', document.getElementById('graphType').value);        // new line
             formData.append('scale_mode', document.getElementById('scaleMode').value);
             if (randomTitle) formData.append('random_title', 'on');
             if (document.getElementById('show_peak_labels').checked) formData.append('show_peak_labels', 'on');
+            if (document.getElementById('reverse_x').checked) formData.append('reverse_x', 'on');
             if (document.getElementById('show_label_colour').checked) formData.append('show_label_colour', 'on');
             if (document.getElementById('show_grid').checked) formData.append('show_grid', 'on');       //
             if (document.getElementById('scale_by_int').checked) formData.append('scale_by_int', 'on');       //

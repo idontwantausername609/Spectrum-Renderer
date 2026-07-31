@@ -1,9 +1,9 @@
 '''
-this module has the predefined variables, get_graph_type(), set_grid(), the intensity column resolving, and the rgb conversion functions. 
+this module has the predefined variables, compute_label_positions() (used ONLY for plot_trad()) the intensity column resolving, and the rgb conversion functions. 
 '''
 
 import re
-import matplotlib.ticker as ticker  # noqa: PLR0402
+import matplotlib.ticker as ticker
 
 # Shared Values
 Y_TITLE = 'Intensity'
@@ -69,53 +69,6 @@ lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl
 int_tokens =["Grey Val", "grey val", "gray val", "grayscale", "gray value", "intensity", "signal", "counts", "value", "int", "rel. int.", "grey", "Rel. Int.", "Relative Intensity", "Rel Int", "Intensity", "A", "Aki", "gA", "gf", "weighted f", "f", "Intensity/Counts", 'rel', 'count', 'flux', 'grey value', 'i']
 
 
-def get_graph_type():
-    global graph_type, rgb_type
-    RGB_TYPE = input("Render as RGB Spectrum? Choose: Yes or No").lower()
-    if RGB_TYPE == 'yes' or RGB_TYPE == 'y':
-        rgb_type = 'yes'
-        GRAPH_TYPE = input("Choose Graph Type: Line, Bar, Scatter, Gaussian, Traditional").lower()
-        if GRAPH_TYPE == 'bar' or GRAPH_TYPE == 'b':
-            graph_type = 'bar'
-        elif GRAPH_TYPE == 'scatter' or GRAPH_TYPE == 's':
-            graph_type = 'scatter'
-        elif GRAPH_TYPE == 'gaussian' or GRAPH_TYPE == 'g':
-            graph_type = 'gaussian'
-        elif GRAPH_TYPE == 'line' or GRAPH_TYPE == 'l':
-            FILL_TYPE = input("Filled Graph? Choose: Yes or No").lower()
-            if FILL_TYPE == 'yes' or FILL_TYPE == 'y':
-                graph_type = 'filled line'
-            else:
-                graph_type = 'line'           
-        elif GRAPH_TYPE == 'traditional' or GRAPH_TYPE == 'trad' or GRAPH_TYPE == 't':
-            graph_type = 'traditional'
-        return GRAPH_TYPE
-    elif RGB_TYPE == 'no' or RGB_TYPE == 'n':
-        rgb_type = 'no'
-        graph_type = 'non rgb line'
-
-    return RGB_TYPE
-
-
-
-
-
-
-
-def _manual_col(data_df, value):
-    if value is None or value == "":
-        return None
-    if isinstance(value, str) and value.isdigit():
-        idx = int(value)
-        return data_df.columns[idx]
-    return value
-
-
-
-
-
-
-
 def resolve_column(df, candidates, label):
     headers = [(str(col).strip(), str(col).strip().lower()) for col in df.columns]
 
@@ -140,8 +93,6 @@ def resolve_column(df, candidates, label):
             if keyword and keyword in normalized:
                 return original
     raise KeyError("Could not find a", label, "column. Available columns:", (df.head()))
-
-
 
 
 def res_col_names(data_df, detect_columns, nm_col, int_col):
@@ -169,17 +120,12 @@ def res_col_names(data_df, detect_columns, nm_col, int_col):
         for col in data_df.columns:
             if str(col).strip().lower() == text.lower():
                 return col
-
         return None
 
     if detect_columns is True:
         wl_col = normalize_selected_col(nm_col)
         INT_col = normalize_selected_col(int_col)
-
-        print('\n\nwl col:', wl_col, '\n\nint col:', INT_col)
-
         if wl_col is None or INT_col is None:
-            print('\n\nwl col:', wl_col, '\n\nint col:', INT_col)
             return data_df, None, None, True
 
         return data_df, wl_col, INT_col, False
@@ -190,8 +136,6 @@ def res_col_names(data_df, detect_columns, nm_col, int_col):
         return data_df, wl_col, INT_col, False
     except KeyError:
         return data_df, None, None, True
-
-    
 
 
 def rgb(wavelength, gamma=gamma_factor):
@@ -208,14 +152,14 @@ def rgb(wavelength, gamma=gamma_factor):
     elif wavelength >= 490 and wavelength <= 510:
         R = 0.0
         G = (1.0) ** gamma
-        B = ((-(wavelength - 510) / (510 - 490))) ** gamma
+        B = (-(wavelength - 510) / (510 - 490)) ** gamma
     elif wavelength >= 510 and wavelength <= 580:
         R = ((wavelength - 510) / (580 - 510)) ** gamma
         G = (1.0) ** gamma
         B = 0.0
     elif wavelength >= 580 and wavelength <= 645:
         R = (1.0) ** gamma
-        G = ((-(wavelength - 645) / (645 - 580))) ** gamma
+        G = (-(wavelength - 645) / (645 - 580)) ** gamma
         B = 0.0
     elif wavelength >= 645 and wavelength <= 750:
         attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
@@ -254,13 +198,14 @@ def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=
             continue
 
         if method == "prefer_stronger_top" and intensities is not None:
+            print("method", method)
             cluster_sorted = sorted(cluster, key=lambda k: -float(intensities[k]))
             n = len(cluster_sorted)
+            print("n", n)
             if n == 1:
                 result[cluster_sorted[0]] = base_y
             else:
                 step = min(y_step, (max_y - base_y) / (n - 1))
                 for pos, idx in enumerate(cluster_sorted):
                     result[idx] = base_y + pos * step
-
     return result

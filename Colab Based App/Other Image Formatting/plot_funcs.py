@@ -10,20 +10,20 @@ import helper_utils
 detection_col = '_raw_int'
 int_col = '_adj_int'
 
-
 # ================
 # Traditonal Plot
 # ================
 
-# updated to work with trad_spec().
-
-def plot(
+def plot_trad(
     df_plot_data,
     scale_mode,
     detect_columns,
     nm_col,
     has_any_nist,
     #mode,
+    show_peak_labels,
+    title,
+    random_title,
     show_grid = False,
     scale_by_int = None,
     save_path = None,
@@ -31,7 +31,6 @@ def plot(
     fig_size=helper_utils.FIG_SIZE,
     min_brightness=0,
     peak_wavelengths=None,
-    show_peak_labels=True,
     x_min=helper_utils.X_MIN,
     x_max=helper_utils.X_MAX,
     min_needle_max_width_nm=helper_utils.MIN_NEEDLE_WIDTH,
@@ -39,6 +38,7 @@ def plot(
     needle_shape_power=helper_utils.NEEDLE_POWER_SHAPE,
     glow_width_multiplier=helper_utils.GLOW_WIDTH_MULT,
     glow_alpha=0,
+    max_needle_y_scale=0,
     dpi=helper_utils.DPI,
     peak_label_y_position=0,
     label_min_norm_int=helper_utils.LABEL_NORM_INT,
@@ -46,13 +46,15 @@ def plot(
     max_needle_y = helper_utils.MAX_Y_SCALE,
     fig_height_overflow_scale = helper_utils.fig_height_overflow_scale,
     fig_height_base = helper_utils.FIG_HEIGHT_BASE,
-    #title=None,
-    #random_title=None,
-    #save_path = None,
 ):
 
+    if show_peak_labels is False:
+        max_needle_y_scale = 0.98
+    else:
+        max_needle_y_scale = helper_utils.MAX_Y_SCALE
+
     fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-    new_utils.trad_spec_labels(fig=fig, ax=ax, x_min=x_min, x_max=x_max,)
+    new_utils.trad_spec_labels(fig=fig, ax=ax, x_min=x_min, x_max=x_max, title=title, random_title=random_title, has_any_nist=has_any_nist, scale_mode=scale_mode)
 
     if has_any_nist:
         scale_mode = None
@@ -81,7 +83,8 @@ def plot(
             peaks.append(idx)
         peaks = sorted(set(peaks))
     elif has_any_nist:
-        peaks = nist_codes.identify_spectral_peaks(df_plot_data.reset_index(drop=True), prominence_percentage, peak_wavelengths=None)
+        print ("DEBUG: has nist plot trad", has_any_nist)
+        peaks = nist_codes.identify_spectral_peaks(df_plot_data.reset_index(drop=True), prominence_percentage, peak_wavelengths=peak_wavelengths)
     else:
         raw_min = df_plot_data[detection_col].min()
         raw_max = df_plot_data[detection_col].max()
@@ -96,60 +99,62 @@ def plot(
     peak_nms = [float(df_plot_data.iloc[index][helper_utils.wl_col]) for index in peaks]
     peak_ints = [float(df_plot_data.iloc[index]["Norm_Int"]) for index in peaks]
     init_peak_label_y_posn = peak_label_y_position
-    try:
-        label_ys = helper_utils.compute_label_positions(
-            peak_nms,
-            intensities=peak_ints,
-            base_y=init_peak_label_y_posn,
-            min_sep_nm=0.4,
-            y_step=0.08,
-            method="prefer_stronger_top",
-            max_y=0.90,
-        )
-    except Exception:
-        label_ys = [init_peak_label_y_posn] * len(peaks)
 
-    if label_ys:
-        max_label_y = max(label_ys)
-        overflow = max(0, max_label_y - init_peak_label_y_posn)
-        print("\noverflow:", overflow)
-        print("o.g. peak label y pos'n:", init_peak_label_y_posn)
-        if overflow > 0:
-            new_height = fig_height_base + overflow * fig_height_overflow_scale
-            new_fig_height = new_height
-            fig.set_figheight(new_height)
-            current_needle_height_in = max_needle_y * new_height
-            new_needle_height = (max_needle_y * fig_height_base) / new_height 
-            max_needle_y_scale = new_needle_height
-            new_peak_y_posn = (init_peak_label_y_posn * fig_height_base) / new_height
-            peak_label_y_position = new_peak_y_posn
-            
-            print("needle height goal:", new_needle_height, "\n \t inches:", new_needle_height*new_height)
-            print("current needle height (in):", current_needle_height_in)
-            print("height:", new_height, "max label y:", max_label_y)
-            print("\npeak label y pos'n goal:", new_peak_y_posn, "\nnew fig height:", new_fig_height)      
+    if show_peak_labels is True:
+        try:
+            label_ys = helper_utils.compute_label_positions(
+                peak_nms,
+                intensities=peak_ints,
+                base_y=init_peak_label_y_posn,
+                min_sep_nm=0.6,
+                y_step=0.04,
+                method="prefer_stronger_top",
+                max_y=0.90,
+            )
+        except Exception:
+            label_ys = [init_peak_label_y_posn] * len(peaks)
+
+        if label_ys:
+            max_label_y = max(label_ys)
+            overflow = max(0, max_label_y - init_peak_label_y_posn)
+            print("\noverflow:", overflow)
+            print("o.g. peak label y pos'n:", init_peak_label_y_posn)
+            if overflow > 0:
+                new_height = fig_height_base + overflow * fig_height_overflow_scale
+                new_fig_height = new_height
+                fig.set_figheight(new_height)
+                current_needle_height_in = max_needle_y * new_height
+                new_needle_height = (max_needle_y * fig_height_base) / new_height 
+                max_needle_y_scale = new_needle_height
+                new_peak_y_posn = (init_peak_label_y_posn * fig_height_base) / new_height
+                peak_label_y_position = new_peak_y_posn
+                
+                print("needle height goal:", new_needle_height, "\n \t inches:", new_needle_height*new_height)
+                print("current needle height (in):", current_needle_height_in)
+                print("height:", new_height, "max label y:", max_label_y)
+                print("\npeak label y pos'n goal:", new_peak_y_posn, "\nnew fig height:", new_fig_height,)      
+            else:
+                print("Labels fit — no expansion needed")
+                max_needle_y_scale = max_needle_y
+                print("peak label y pos'n:", peak_label_y_position)
         else:
-            print("Labels fit — no expansion needed")
             max_needle_y_scale = max_needle_y
-            print("peak label y pos'n:", peak_label_y_position)
-    else:
-        max_needle_y_scale = max_needle_y
-        print("No labels on this spectrum")
-    print(f"DEBUG: max_label_y = {max(label_ys) if label_ys else 'N/A'}")
+            print("No labels on this spectrum")
+        print(f"DEBUG: max_label_y = {max(label_ys) if label_ys else 'N/A'}")
 
-    try:
-        label_ys = helper_utils.compute_label_positions(
-            peak_nms,
-            intensities=peak_ints,
-            base_y=peak_label_y_position,   # now uses updated value
-            min_sep_nm=1.5,
-            y_step=0.08,
-            method="prefer_stronger_top",
-            max_y=0.85,
-        )
-    except Exception:
-        label_ys = [peak_label_y_position] * len(peaks)
-    print("\n new peak label pos'n:", peak_label_y_position)
+        try:
+            label_ys = helper_utils.compute_label_positions(
+                peak_nms,
+                intensities=peak_ints,
+                base_y=peak_label_y_position,   # now uses updated value
+                min_sep_nm=0.4,
+                y_step=0.08,
+                method="prefer_stronger_top",
+                max_y=0.90,
+            )
+        except Exception:
+            label_ys = [peak_label_y_position] * len(peaks)
+        print("\n new peak label pos'n:", peak_label_y_position)
 
     # Render every transition as a faint needle (increase visibility for verification)
     _bg_y_top = max_needle_y_scale  # use full height for visibility
@@ -252,49 +257,7 @@ def plot(
                 path_effects=[pe.withStroke(linewidth=1.5, foreground="black")],
             )
 
-    if has_any_nist or scale_mode == 'raw':     # scale_mode == 'raw':
-        pad = 15
-    else:
-        pad = 10
     plt.tight_layout(rect=[0, 0, 1, 0.92])
-
-    '''
-
-    # should go in new_utils?
-
-    # Title logic: custom > random fallback > skip
-    if title and str(title).strip():
-        plt.title(str(title).strip(), color=new_utils.colour, y=0.98, pad=pad)
-    if random_title:
-        plt.title(new_utils.generate_random_title(), color=new_utils.colour, y=0.98, pad=pad)
-    # else: no title at all
-    '''
-
-    if scale_mode is not None:
-        plt.title(f'{scale_mode.capitalize()} Emission Spectrum Visualization', color=helper_utils.COLOUR, y=0.98, pad=pad)
-    else:
-        plt.title('Emission Spectrum Visualization', color=helper_utils.COLOUR, y=0.98, pad=pad)
-    plt.subplots_adjust(top=subplots_adjust_top)
-
-    print("\nDEBUG: fig height = ", fig.get_figheight(), "\n current needle height = ", current_peak_render_height)
-
-
-    if save_path:
-        try:
-            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
-        except Exception:
-            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
-
-
-    '''
-    # Save the plot if a save_path is provided
-    if save_path:
-        try:
-            fig.savefig(save_path, facecolor=fig.get_facecolor(), bbox_inches='tight', dpi=dpi)
-        except Exception:
-            plt.savefig(save_path, facecolor=plt.gcf().get_facecolor(), bbox_inches='tight', dpi=dpi)
-    '''
-
     return fig, ax
 
 
@@ -439,7 +402,8 @@ def filled_plot(data_df, show_peak_labels, show_label_colour, scale_by_int):
         plt.plot([wavelength_start, wavelength_end],
                     [data_df.iloc[i][helper_utils.INT_col], data_df.iloc[i+1][helper_utils.INT_col]],
                     color=base_rgb,
-                    linewidth=2) # Thicker line for better visibility on top of fill        # this should only be for non-smoothed
+                    linewidth=2) # Thicker line for better visibility on top of fill
+
             
 def scatter_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
     if show_peak_labels is True:
@@ -483,7 +447,7 @@ def bar_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
             final_intensity_scale = new_utils.final_scale(helper_utils.DEFAULT_MIN_BRIGHT, normalized_intensity)     # this does the dimming
         else:
             final_intensity_scale = 1.0
-        color_rgb = new_utils.colored_rgb(base_rgb, final_intensity_scale)        # changed to 1.0 from final_intensity_scale. want this to be optional
+        color_rgb = new_utils.colored_rgb(base_rgb, final_intensity_scale)
         bar_colors.append(color_rgb)
     plt.bar(
         x=data_df[helper_utils.wl_col],
@@ -492,7 +456,6 @@ def bar_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int):
         color=bar_colors,
         edgecolor='none' # No edge color for bars
     )
-
 
 def non_rgb_iteration(data_df, show_peak_labels, show_label_colour):
     plt.plot(data_df[helper_utils.wl_col], data_df[helper_utils.INT_col], marker=None)

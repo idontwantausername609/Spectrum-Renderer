@@ -140,18 +140,11 @@ select:focus {
 /* =================== */
 
 
-.check {
-    row-gap: 10px;
-    margin-top: 8px;
-    row-gap: 10px;
-}
-
 .header-choices {
     align-items: center;
     gap: 6px;
     margin-top: 8px;
 }
-
 
 .checkbox-group {
     display: flex;
@@ -166,7 +159,6 @@ select:focus {
 .peak-group {
     flex-direction: column;
 }
-
 
 #checkGroup {
     display: flex;
@@ -202,10 +194,6 @@ input[type="checkbox"] {
     accent-color: #667eea;
 }
 
-
-
-
-/* new styles */
 
 .grid-container {
     display: grid;
@@ -246,12 +234,6 @@ th {
 .hidden {
     display: none;
 }
-
-/*
-#selector-section {
-    display: inline-flex;
-}
-*/
 
 #column-selection {
     display: grid;

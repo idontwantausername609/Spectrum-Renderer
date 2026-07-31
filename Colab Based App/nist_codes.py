@@ -32,6 +32,8 @@ def detect_nist_values(series, force_nist=None, nist_helper_module=nist_helper):
     else:
         has_any_nist = bool(contains_tokens or (numeric_fraction < 0.6 and contains_descriptor_chars))
 
+    print("DEBUG: detect_nist_values")
+
     return has_any_nist, {
         "numeric_fraction": numeric_fraction,
         "contains_tokens": contains_tokens,
@@ -53,6 +55,10 @@ def parse_nist_intensity(raw_value):
     after = text[match.end():].strip()
     descriptor = (before + " " + after).strip()
     descriptor = re.sub(r'[\s,]+', ' ', descriptor)
+
+    print("DEBUG: parse_nist_intensity")
+
+
     return (num_val, descriptor)
 
 
@@ -78,6 +84,8 @@ def prepare_nist_spectrum(df, int_col, apply_descriptor_adjustments=False):
     else:
         df["_adj_int"] = df["_raw_int"]
 
+    print("DEBUG: prepare_nist_spectrum")
+
     return df
 
 # normalized descriptor keys (module-level)
@@ -98,9 +106,13 @@ def _effects_from_desc(desc):
     else:
         tokens = [tok for tok in re.split(r"[\s,]+", desc_text) if tok]
     eff = nist_helper.compute_descriptor_effects(tokens)
+
+    print("DEBUG: _effects_from_desc")
+    
     return eff.get("intensity_multiplier", 1.0), eff.get("width_multiplier", 1.0), eff.get("include", True)
 
 def identify_spectral_peaks(aggregated_df, prominence_percentage, peak_wavelengths=None):
+    print("DEBUG: peak wavelengths (id spec peaks)", peak_wavelengths)
     if peak_wavelengths is not None:
         nm_vals = aggregated_df['_rounded_nm'].values
         peaks = []
@@ -114,6 +126,8 @@ def identify_spectral_peaks(aggregated_df, prominence_percentage, peak_wavelengt
     peaks = []
     window_radius = 0  
     intensity_floor = aggregated_df['Norm_Int'].max() * (prominence_percentage * 0.2)
+
+    print("DEBUG: identify_spectral_peaks")
     
     for i in range(window_radius, len(aggregated_df) - window_radius):
         current_int = aggregated_df.iloc[i]['Norm_Int']

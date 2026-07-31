@@ -91,6 +91,7 @@ def render():
     detect_columns = request.form.get('detect_columns') == 'true'
     nm_col = request.form.get('nm_col')
     int_col = request.form.get('int_col')
+    reverse_x = 'reverse_x' in request.form
 
     if sheet_name == '':
         sheet_name = None
@@ -117,6 +118,7 @@ def render():
         fig = renderer.plot(
             df,
             detect_columns=detect_columns,
+            reverse_x=reverse_x,
             nm_col=wl_col,
             int_col=INT_col,
             graph_type=graph_type,

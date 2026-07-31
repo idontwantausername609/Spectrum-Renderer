@@ -61,7 +61,7 @@ def plot_spec(
     df_plot_data[nm_col] = pd.to_numeric(df_plot_data[nm_col], errors='coerce')
 
     # run NIST detector
-    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_plot_data[int_col], force_nist=force_nist)
+    has_any_nist, _nist_diag = nist_codes.detect_nist_values(df_plot_data[int_col], force_nist=force_nist)
 
     if has_any_nist:
         df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, int_col, apply_descriptor_adjustments)

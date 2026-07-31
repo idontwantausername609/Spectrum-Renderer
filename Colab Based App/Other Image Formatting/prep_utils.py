@@ -8,18 +8,18 @@ def nist_check(data_df, detect_columns, nm_col, int_col, force_nist=None):
     df_data = data_df.copy()
     helper_utils.res_col_names(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     df_data[helper_utils.wl_col] = pd.to_numeric(df_data[helper_utils.wl_col], errors='coerce')
-    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
+    has_any_nist, _nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
     if has_any_nist:
         has_nist = True
     else:
-        has_nist = False
+        has_nist = False    
     return has_nist, nm_col, int_col
 
 def run_nist_check(data_df, detect_columns, nm_col, int_col, force_nist=None):
     helper_utils.res_col_names(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     df_data = data_df.copy()
     df_data[helper_utils.wl_col] = pd.to_numeric(df_data[helper_utils.wl_col], errors='coerce')
-    has_any_nist, nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
+    has_any_nist, _nist_diag = nist_codes.detect_nist_values(df_data[helper_utils.INT_col], force_nist=force_nist)
     return df_data, has_any_nist, detect_columns, nm_col, int_col
 
 
@@ -35,7 +35,7 @@ def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
 
 
 def prep_with_nist(data_df, detect_columns, nm_col, int_col, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX, apply_descriptor_adjustments = False):
-    global int_range
+    global int_range, Y_MAX
 
     df_plot_data, has_any_nist, _, _, _ = run_nist_check(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
     if has_any_nist:
@@ -63,6 +63,10 @@ def prep_with_nist(data_df, detect_columns, nm_col, int_col, x_min = helper_util
     min_int_val = df_plot_data['_adj_int'].min()
     max_int_val = df_plot_data['_adj_int'].max()
     int_range = max_int_val - min_int_val
+
+    int_vals = df_plot_data['_adj_int']
+    Y_MAX = int_vals.max()
+    print('(prep_with_nist) ymax = ', Y_MAX)
     
     if int_range == 0 or np.isnan(int_range):
         df_plot_data['Norm_Int'] = 1.0
