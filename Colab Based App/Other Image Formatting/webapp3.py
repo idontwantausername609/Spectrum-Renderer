@@ -7,7 +7,6 @@ Then navigate to http://localhost:8080 in your browser.
 import io
 from flask import Flask, render_template, request, send_file, jsonify
 import matplotlib.pyplot as plt
-import pandas as pd
 import loader 
 import renderer
 import prep_utils
