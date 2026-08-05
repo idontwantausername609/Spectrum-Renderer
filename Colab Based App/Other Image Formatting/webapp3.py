@@ -5,13 +5,17 @@ Then navigate to http://localhost:8080 in your browser.
 """
 
 import io
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify, Response
 import matplotlib.pyplot as plt
 import loader 
 import renderer
 import prep_utils
+import new_utils
 import traceback
 import helper_utils
+import plotly.express as px
+import plotly.utils
+import orjson
 
 app3 = Flask(__name__)
 app3.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
@@ -114,7 +118,9 @@ def render():
         scale_mode = request.form.get('scale_mode', 'raw')
         graph_type = request.form.get('graph_type')
 
-        fig = renderer.plot(
+
+
+        figure, configs = renderer.plot(
             df,
             detect_columns=detect_columns,
             reverse_x=reverse_x,
@@ -128,14 +134,31 @@ def render():
             random_title=random_title,
             show_peak_labels=show_peak_labels,
             show_label_colour=show_label_colour,
-        )
+        )  
 
-        img_io = io.BytesIO()
-        plt.savefig(img_io, format='png', dpi=600, bbox_inches='tight')
-        img_io.seek(0)
-        plt.close(fig)
+        if graph_type == 'traditional':
+            fig_size = helper_utils.FIG_SIZE
+        else:
+            fig_size = helper_utils.fig_size
 
-        return send_file(img_io, mimetype='image/png')
+
+
+        figure_dict = figure.to_dict()
+        payload = {
+            'data': figure_dict['data'],
+            'layout': figure_dict['layout'],
+            'config': configs,
+        }
+
+        json_bytes = orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+        return Response(json_bytes, mimetype='application/json')
+
+
+
+
+        #figure_dict = figure.to_dict()
+        #json_bytes = orjson.dumps(figure_dict)
+        #return Response(json_bytes, mimetype='application/json')
 
     except Exception as e:
         traceback.print_exc()

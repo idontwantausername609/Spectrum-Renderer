@@ -3,6 +3,7 @@
 
 <head>
     <link rel="stylesheet" href="../static/style.css">
+    <script src="../static/plotly-3.6.0.min.js" charset="utf-8"></script>
 </head>
 
 <body>
@@ -155,15 +156,18 @@
             </div>
             <button type="submit">Render Spectrum</button>
         </form>
-        <div id="result"></div>
     </div>
-
+    
     <!-- Fullscreen preview modal -->
+    <div id="result"></div>
     <div id="previewModal" class="modal" aria-hidden="true" role="dialog" aria-label="Image preview">
         <div class="modal-backdrop" id="modalBackdrop"></div>
         <div class="modal-content" role="document">
-            <button id="modalClose" class="modal-close" aria-label="Close preview">✕</button>
-            <img id="modalImage" src="" alt="Preview" />
+            <button id="modalClose" class="modal-close" aria-label="Close preview", title="Close preview">✕</button>
+            <img id="modalImage" src="" alt="Preview" />        <!-- will have to remove this line -->
+
+            <div id="modalPlotlyChart" style="width: 100%; display: none;"></div>
+            
             <a id="modalDownload" class="modal-download" download>Download</a>
         </div>
     </div>

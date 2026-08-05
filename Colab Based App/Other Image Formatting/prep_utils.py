@@ -37,7 +37,7 @@ def prepare_generic_spectrum(df, int_col, apply_descriptor_adjustments=False):
 def prep_with_nist(data_df, detect_columns, nm_col, int_col, x_min = helper_utils.X_MIN, x_max = helper_utils.X_MAX, apply_descriptor_adjustments = False):
     global int_range, Y_MAX
 
-    df_plot_data, has_any_nist, _, _, _ = run_nist_check(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col,)
+    df_plot_data, has_any_nist, _, _, _ = run_nist_check(data_df=data_df, detect_columns=detect_columns, nm_col=nm_col, int_col=int_col)
     if has_any_nist:
         df_plot_data = nist_codes.prepare_nist_spectrum(df_plot_data, helper_utils.INT_col, apply_descriptor_adjustments)
         print('NIST Destriptors Detected. Preparing NIST Rendering.')

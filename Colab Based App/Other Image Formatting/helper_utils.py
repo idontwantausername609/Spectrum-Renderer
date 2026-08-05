@@ -3,7 +3,6 @@ this module has the predefined variables, compute_label_positions() (used ONLY f
 '''
 
 import re
-import matplotlib.ticker as ticker
 
 # Shared Values
 Y_TITLE = 'Intensity'
@@ -14,13 +13,15 @@ X_MIN = 400
 X_MAX = 750
 FIG_WIDTH = 15
 DPI = 600
+LINE_COLOUR = '#333333'
+GRID_COLOUR = '#222222'
 
 # Traditional Plot Values
 FIG_HEIGHT_BASE = 3.0
 FIG_SIZE = (FIG_WIDTH, FIG_HEIGHT_BASE)
 MIN_NEEDLE_WIDTH = 0.1
 MAX_NEEDLE_WIDTH = 0.3
-MAX_Y_SCALE = 0.75
+MAX_Y_SCALE = 0.77
 NEEDLE_POWER_SHAPE = 4
 LABEL_NORM_INT = 0.20
 GLOW_WIDTH_MULT = 1.3
@@ -44,24 +45,20 @@ DEFAULT_PEAK_LABEL_POSN = 0.77
 
 # Other Plot Values
 fig_size = (15,6)
-#prominence = 0.08       # changed from 0.12
-#min_bright = 0.1
 min_alpha = 0.1
 min_alpha_scatter = 0.2
-base_marker_size = 5
-max_marker_size_factor = 95
+base_marker_size = 2
+max_marker_size_factor = 10
 gamma_factor = 0.8
 bar_width = 1
-smoothing_window = 5    # Increase this value to control the degree of smoothing
 base_sigma_nm = 0.5 # Base width of the Gaussian (for low intensity peaks)
 max_sigma_multiplier = 4.0 # How much wider the highest intensity peaks can be
 reverse_x = True
 plot_type = None
 show_grid = True
 
-
-major_locator = ticker.MultipleLocator(50)
-minor_locator = ticker.MultipleLocator(10)
+MAJOR_TICKS = 50
+MINOR_TICKS = 10
 
 
 lambda_tokens = ["nm", "wavelength", "wavelength_nm", "lambda", "lambda_nm", "wl", "wl_nm", "Observed", "Observed Wavelength", "obs", "wave", "w"]
@@ -120,7 +117,7 @@ def res_col_names(data_df, detect_columns, nm_col, int_col):
         for col in data_df.columns:
             if str(col).strip().lower() == text.lower():
                 return col
-        return None
+        #return None
 
     if detect_columns is True:
         wl_col = normalize_selected_col(nm_col)
@@ -138,7 +135,7 @@ def res_col_names(data_df, detect_columns, nm_col, int_col):
         return data_df, None, None, True
 
 
-def rgb(wavelength, gamma=gamma_factor):
+def rgb(wavelength, gamma=0.8):
     wavelength = float(wavelength)
     if wavelength >= 380 and wavelength <= 440:
         attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
@@ -152,14 +149,14 @@ def rgb(wavelength, gamma=gamma_factor):
     elif wavelength >= 490 and wavelength <= 510:
         R = 0.0
         G = (1.0) ** gamma
-        B = (-(wavelength - 510) / (510 - 490)) ** gamma
+        B = ((-(wavelength - 510) / (510 - 490))) ** gamma
     elif wavelength >= 510 and wavelength <= 580:
         R = ((wavelength - 510) / (580 - 510)) ** gamma
         G = (1.0) ** gamma
         B = 0.0
     elif wavelength >= 580 and wavelength <= 645:
         R = (1.0) ** gamma
-        G = (-(wavelength - 645) / (645 - 580)) ** gamma
+        G = ((-(wavelength - 645) / (645 - 580))) ** gamma
         B = 0.0
     elif wavelength >= 645 and wavelength <= 750:
         attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
@@ -170,7 +167,7 @@ def rgb(wavelength, gamma=gamma_factor):
         R = 0.0
         G = 0.0
         B = 0.0
-    return (R, G, B)
+    return (R*255, G*255, B*255)
 
 
 def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=0.5, y_step=0.04, method="prefer_stronger_top", max_y=0.98):
@@ -198,10 +195,8 @@ def compute_label_positions(peak_nms, intensities=None, base_y=None, min_sep_nm=
             continue
 
         if method == "prefer_stronger_top" and intensities is not None:
-            print("method", method)
             cluster_sorted = sorted(cluster, key=lambda k: -float(intensities[k]))
             n = len(cluster_sorted)
-            print("n", n)
             if n == 1:
                 result[cluster_sorted[0]] = base_y
             else:

@@ -3,6 +3,9 @@
 //Fullscreen preview modal logic
 const previewModal = document.getElementById('previewModal');
 const modalImage = document.getElementById('modalImage');
+
+const modalChartContainer = document.getElementById('modalPlotlyChart');
+
 const modalClose = document.getElementById('modalClose');
 const modalDownload = document.getElementById('modalDownload');
 const modalBackdrop = document.getElementById('modalBackdrop');
@@ -21,6 +24,13 @@ let intHeaders = [];
 let nmHeaders = [];
 let globalRows = [];
 let rawParsedData = [];
+
+
+let globalChartData = null; 
+
+
+
+
 
 
 // Functions
@@ -260,6 +270,10 @@ document.getElementById("has-headers").addEventListener("change", () => {
     }
 });
 
+
+
+
+/*
 function openPreview(src, filename) {
     modalImage.src = src;
     modalImage.alt = filename || 'Spectrum preview';
@@ -276,6 +290,11 @@ function closePreview() {
     modalImage.src = '';
     document.body.style.overflow = '';
 }
+*/
+
+
+
+
 
 
 // Script
@@ -529,10 +548,16 @@ renderForm.addEventListener('submit', async (e) => {
             if (document.getElementById('show_grid').checked) formData.append('show_grid', 'on');       //
             if (document.getElementById('scale_by_int').checked) formData.append('scale_by_int', 'on');       //
 
+            // ... [Keep all your existing FormData appending code exactly the same] ...
+
             const response = await fetch('/api/render', { method: 'POST', body: formData });
             const contentType = response.headers.get('content-type');
+
+            // 1. CHOOSE PROCESSING PATH BASED ON RESPONSE TYPE
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();
+                
+                // Keep your manual detection error handler fallback intact
                 if (data.needs_manual_selection) {
                     resultDiv.innerHTML = '<div class="error">Could not auto-detect column headers. Please manually select the wavelength and intensity columns below.</div>';
                     document.getElementById('selector-section').hidden = false;
@@ -540,30 +565,119 @@ renderForm.addEventListener('submit', async (e) => {
                     selectHeaders();
                     return;
                 }
-                throw new Error(data.error || 'Unknown error');
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // >>> PLOTLY HANDLING PATH <<<
+                // Save the incoming Python data directly to your new global variable tracker
+                globalChartData = data;
+
+                // Instead of an img tag, generate a structured div with a unique ID for Plotly
+                html += '<div class="image-container">' +
+                        '<div class="image-label">' + labelSheet + '</div>' +
+                        '<div id="mainPlotlyChart" style="width:100%;"></div>' +
+                        '</div>';
+
+            } else {
+                // >>> MATPLOTLIB FALLBACK PATH <<<
+                // Keep your original blob code running perfectly if you serve raw files
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                html += '<div class="image-container"><div class="image-label">' + labelSheet + ' </div><img src="' + url + '" alt="Spectrum"></div>';
             }
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            html += '<div class="image-container"><div class="image-label">' + labelSheet + ' </div><img src="' + url + '" alt="Spectrum"></div>';
+        } // End of your for-of sheet loop
+
+        // 2. Inject the built HTML elements safely into the DOM string
+        resultDiv.innerHTML = html;
+
+        // 3. INITIALIZE THE PLOTLY INTERACTIVE CHART
+        // We only do this if globalChartData was successfully captured above
+        if (globalChartData && document.getElementById('mainPlotlyChart')) {
+            // Unpack your backend configurations cleanly
+            const chartData   = Array.isArray(globalChartData.data) ? globalChartData.data : [globalChartData.data];
+            const chartLayout = Object.assign({}, globalChartData.layout);
+            const chartConfig = Object.assign({}, globalChartData.config);
+
+            // Tell Plotly to draw the primary dashboard interface graph
+            Plotly.newPlot('mainPlotlyChart', chartData, chartLayout, chartConfig);
         }
 
-        resultDiv.innerHTML = html;
     } catch (error) {
         resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
     }
 });
 
+
 // Fullscreen preview modal logic
+
+
+
+
+
+
 // Delegate click events on result images
 resultDiv.addEventListener('click', (ev) => {
     const t = ev.target;
+    
+    // Check for standard image tags
     if (t && t.tagName === 'IMG') {
-        // Open preview with same object URL and filename from alt
         openPreview(t.src, t.alt || 'spectrum.png');
+        return;
+    }
+
+    // Target your main dashboard Plotly container div or any internal SVG children
+    const plotlyContainer = t.closest('.plotly-graph-div') || t.closest('#mainPlotlyChart'); 
+    
+    if (plotlyContainer) {
+        // Open your fullscreen modal using the cloned openPlotlyPreview function we updated
+        openPlotlyPreview('spectrum.png');
     }
 });
 
-// Close interactions
+
+// Custom function to open your Plotly interactive modal safely
+function openPlotlyPreview(filename) {
+    if (!globalChartData) return;
+
+    previewModal.classList.add('open');
+    previewModal.style.display = 'flex'; 
+    previewModal.setAttribute('aria-hidden', 'false');
+
+    modalImage.style.display = 'none';
+    modalChartContainer.style.display = 'block';
+
+    const chartData = Array.isArray(globalChartData.data) ? globalChartData.data : [globalChartData.data];
+    const chartLayout = Object.assign({}, globalChartData.layout);
+    const chartConfig = globalChartData.config || {};
+
+    chartLayout.width = null;
+    chartLayout.height = null;
+    chartLayout.autosize = true;
+
+    Plotly.newPlot('modalPlotlyChart', chartData, chartLayout, chartConfig);
+    Plotly.Plots.resize('modalPlotlyChart');
+    Plotly.toImage('modalPlotlyChart', {format: 'png'})
+        .then(function(dataUrl) {
+            modalDownload.href = dataUrl;
+            modalDownload.download = filename;
+        });
+}
+
+
+
+// Update your existing closePreview function slightly to include a purge
+function closePreview() {
+    previewModal.classList.remove('open');
+    previewModal.style.display = 'none';
+    previewModal.setAttribute('aria-hidden', 'true');
+    
+    // Purge the modal chart memory allocation when closed to prevent slowdowns
+    Plotly.purge('modalPlotlyChart');
+}
+
+// Wire up your close triggers using your existing handlers
 modalClose.addEventListener('click', closePreview);
 modalBackdrop.addEventListener('click', closePreview);
 document.addEventListener('keydown', (ev) => {
@@ -571,3 +685,118 @@ document.addEventListener('keydown', (ev) => {
         closePreview();
     }
 });
+
+
+const style = document.createElement('style'); 
+style.textContent = ` 
+    /* Keep the default modebar completely hidden/collapsed */ 
+    .js-plotly-plot .plotly .modebar { 
+        opacity: 0 !important; 
+        pointer-events: none !important; 
+        transform: translateX(20px); 
+        transition: all 0.3s ease-in-out !important; 
+    } 
+    /* Expanded state when the single icon is toggled active */ 
+    .js-plotly-plot.modebar-expanded .plotly .modebar { 
+        opacity: 1 !important; 
+        pointer-events: auto !important; 
+    } 
+    /* NEW: Re-aligns internal Plotly row groups into an absolute vertical stack */
+    .js-plotly-plot.style-vertical-modebar .plotly .modebar {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: auto !important;
+        background: transparent !important;
+    }
+    
+    /* Forces the internal grouping rows to act as vertical columns */
+    .js-plotly-plot.style-vertical-modebar .plotly .modebar-group {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+        margin-bottom: 4px !important; /* Adds a clean gap between buttons */
+    }
+    
+    /* The custom single icon container */ 
+    .plotly-custom-toggle { 
+        position: absolute; 
+        top: 10px; 
+        right: 8px; 
+        z-index: 1001; 
+        background: rgba(0, 0, 0, 0.7); 
+        border-radius: 4px; 
+        width: 25px; 
+        height: 25px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer; 
+        font-size: 16px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+        transition: background 0.2s; 
+        user-select: none; 
+    } 
+    .plotly-custom-toggle:hover { 
+        background: rgba(42, 42, 62, 0.7); 
+    } 
+`; 
+document.head.appendChild(style); 
+
+// 2. Dynamically add the single toggle icon to every Plotly chart on the page 
+document.addEventListener('DOMContentLoaded', () => { 
+    // We use a MutationObserver to catch charts even if they load dynamically 
+    const observer = new MutationObserver(() => { 
+        const charts = document.querySelectorAll('.js-plotly-plot:not(.has-toggle-btn)'); 
+        
+        charts.forEach(chart => { 
+            if (!chart.layout) return;
+            
+            chart.classList.add('has-toggle-btn'); 
+            
+            const layoutStyle = (chart.layout && chart.layout.meta && chart.layout.meta.modebar_style) || 'shifted';
+            const modebar = chart.querySelector('.modebar');
+            
+            // NEW: Flags the chart element wrapper so CSS layout locks the vertical view
+            if (layoutStyle === 'vertical') {
+                chart.classList.add('style-vertical-modebar');
+            }
+            
+            // Create the single collapse/expand icon 
+            const toggleBtn = document.createElement('div'); 
+            toggleBtn.className = 'plotly-custom-toggle'; 
+            toggleBtn.innerHTML = '☰'; 
+            
+            // Handle clicking the single icon 
+            toggleBtn.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                chart.classList.toggle('modebar-expanded'); 
+                
+                const isOpen = chart.classList.contains('modebar-expanded');
+                toggleBtn.innerHTML = isOpen ? '✕' : '☰'; 
+                
+                if (modebar) {
+                    if (isOpen) {
+                        if (layoutStyle === 'vertical') {
+                            // Perfect drop spacing below your close button
+                            modebar.style.setProperty('transform', 'translateY(35px) translateX(-5px)', 'important');
+                        } else {
+                            // Left shift for horizontal bars to clear the close icon
+                            modebar.style.setProperty('transform', 'translateX(-45px)', 'important');
+                        }
+                    } else {
+                        // Reset layout back to default when collapsed
+                        modebar.style.setProperty('transform', 'none', 'important');
+                    }
+                }
+            }); 
+            
+            // Append the button into the chart container wrapper 
+            chart.style.position = 'relative'; 
+            chart.appendChild(toggleBtn); 
+        }); 
+    }); 
+    
+    observer.observe(document.body, { childList: true, subtree: true }); 
+});
+
