@@ -89,10 +89,11 @@ def set_y_lim(graph_type, show_peak_labels):
 
 
 def margin_corrs(graph_type, title, random_title, show_peak_labels, has_any_nist, scale_mode):
+
     if title:
         plot_title = str(title).strip()
         top_margin = 65
-    if random_title:
+    elif random_title:
         plot_title= str(generate_random_title())
         if graph_type == 'traditional':
             top_margin = 35
@@ -112,7 +113,7 @@ def margin_corrs(graph_type, title, random_title, show_peak_labels, has_any_nist
         if has_any_nist is False:
             top_margin += 15
         elif has_any_nist is True:
-            top_margin = 0
+            top_margin -= 15
 
     return top_margin, plot_title
 
@@ -178,6 +179,7 @@ def axis_labels(
     top_margin, plot_title = margin_corrs(graph_type=graph_type, title=title, random_title=random_title, show_peak_labels=show_peak_labels, has_any_nist=None, scale_mode=None)
 
     layout_config = dict(
+        dragmode='pan',
         plot_bgcolor=bg_colour,
         paper_bgcolor=bg_colour,
         font=dict(color=text_colour, family='Roboto'),
@@ -297,6 +299,8 @@ def trad_spec_labels(
     ):
 
     top_margin, plot_title = margin_corrs(graph_type=graph_type, title=title, random_title=random_title, show_peak_labels=show_peak_labels, has_any_nist=has_any_nist, scale_mode=scale_mode)
+
+    print("\nDEBUG: plot title (trad spec labels)", plot_title, "\ntop margin:", top_margin)
 
     layout_config = dict (
         plot_bgcolor=bg_colour,

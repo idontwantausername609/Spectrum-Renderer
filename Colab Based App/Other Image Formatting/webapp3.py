@@ -95,7 +95,7 @@ def render():
     nm_col = request.form.get('nm_col')
     int_col = request.form.get('int_col')
     reverse_x = 'reverse_x' in request.form
-
+    
     if sheet_name == '':
         sheet_name = None
     if file.filename == '':

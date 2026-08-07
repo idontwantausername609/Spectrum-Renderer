@@ -55,14 +55,11 @@ body {
     height: auto;
 }
 
-#mainPlotlyChart {
-    max-height: 100vh;
-}
-
 #mainPlotlyChart, #modalPlotlyChart {
     width: 100%;
     max-width: 100vw;
     height: 100%;
+    max-height: 100vh;
     display: block;
     align-items: center;
     justify-content: center;
@@ -86,112 +83,6 @@ body {
     margin: 0px 1px !important;     /* Controls literal spacing between sibling buttons */
 }
 
-/* Keep the default modebar completely hidden/collapsed */ 
-.js-plotly-plot .plotly .modebar { 
-    opacity: 0 !important; 
-    pointer-events: none !important; 
-    transform: translateX(20px); 
-    transition: all 0.3s ease-in-out !important; 
-} 
-/* Expanded state when the single icon is toggled active */ 
-.js-plotly-plot.modebar-expanded .plotly .modebar { 
-    opacity: 1 !important; 
-    pointer-events: auto !important; 
-    transform: translateX(-45px) !important;
-} 
-/* NEW: Re-aligns internal Plotly row groups into an absolute vertical stack */
-.js-plotly-plot.style-vertical-modebar .plotly .modebar {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    width: auto !important;
-    background: transparent !important;
-}
-
-/* Forces the internal grouping rows to act as vertical columns */
-.js-plotly-plot.style-vertical-modebar .plotly .modebar-group {
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-    margin-bottom: 4px !important; /* Adds a clean gap between buttons */
-}
-
-.js-plotly-plot.style-vertical-modebar.modebar-expanded .plotly .modebar {
-  transform: translateY(45px) translateX(-5px) !important; /* Perfect spacing under close button */
-}
-
-/* 3. Base reset: Ensure it collapses correctly when the menu is closed */
-.js-plotly-plot:not(.modebar-expanded) .plotly .modebar {
-  transform: none !important;
-}
-
-.modebar-toggle { 
-    position: absolute; 
-    top: 10px; 
-    right: 8px; 
-    z-index: 1001; 
-    background: rgba(0, 0, 0, 0.7); 
-    border-radius: 4px; 
-    width: 25px; 
-    height: 25px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    cursor: pointer; 
-    font-size: 16px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-    transition: background 0.2s; 
-    user-select: none; 
-} 
-
-.js-plotly-plot.modebar-expanded .modebar-toggle {font-size: 0;}
-  
-  .js-plotly-plot.modebar-expanded .modebar-toggle::before {
-    content: "✕"; 
-    font-size: 16px;
-    color: #ffffff;
-  }
-
-.modebar-toggle:hover {background: rgba(42, 42, 62, 0.7);} 
-
-/* The floating banner capsule */
-.preview-exit-hint, .preview-exit-hint.show {
-  position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100px); /* Starts hidden above the screen */
-  z-index: 99999; /* sits above preview modal and charts */
-  background: rgb(30 30 30 / 70%);
-  backdrop-filter: blur(8px);
-  color: #ffffff;
-  padding: 10px 20px;
-  font-family: sans-serif;
-  font-size: 14px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  pointer-events: none; /* Prevents blocking mouse clicks beneath it */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
-  opacity: 0;
-}
-
-/* Keyboard key indicator styling */
-.preview-exit-hint kbd {
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 #fff;
-  color: #fff;
-  display: inline-block;
-  font-weight: bold;
-  padding: 1px 6px 2px;
-  margin: 0 2px;
-}
-
-/* Class to trigger the entry slide down and fade in */
-.preview-exit-hint.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
 
 /* =================== */
 /* Headers/Subtext */
@@ -228,7 +119,9 @@ h2, h3 {
 /* Sheet Selection */
 /* =================== */
 
-.form-group, #sheet-select {margin-bottom: 15px;}
+.form-group, #sheet-select {
+    margin-bottom: 15px;
+}
 
 /* =================== */
 /* Graph Type */
@@ -310,7 +203,9 @@ select:focus {
     flex-wrap: wrap;
 }
 
-.peak-group {flex-direction: column;}
+.peak-group {
+    flex-direction: column;
+}
 
 #checkGroup {
     display: flex;
@@ -326,6 +221,19 @@ select:focus {
     margin-top: 8px;
 }
 
+/*
+label.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+*/
+
 input[type="checkbox"] {
     width: auto;
     cursor: pointer;
@@ -338,7 +246,9 @@ input[type="checkbox"] {
     grid-gap: 10px;
 }
 
-.grid-container > div {padding: 10px;}
+.grid-container > div {
+    padding: 10px;
+}
 
 .table-container {
     overflow-x: auto;
@@ -395,18 +305,9 @@ button:hover {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-button:active {transform: translateY(0);}
-
-.data-preview-button {
-    width: fit-content;
-    background: none;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    padding: 8px;
-    outline: none;
+button:active {
+    transform: translateY(0);
 }
-
-.data-preview-button:hover {box-shadow: none;}
 
 .result {
     margin-top: 0px;
@@ -414,7 +315,9 @@ button:active {transform: translateY(0);}
     width: 100%;
 }
 
-.image-container {margin-bottom: 20px;}
+.image-container {
+    margin-bottom: 20px;
+}
 
 .image-label {
     font-weight: 600;
@@ -422,29 +325,14 @@ button:active {transform: translateY(0);}
     font-size: 13px;
     color: #aaa;
 }
-
-.plot-container.plotly {
-    padding-bottom: 0px;
-    margin-bottom: 0px;
+/*
+#result img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: block;
 }
-
-#preview-button {
-    width: fit-content;
-    font-size: 14px;
-    z-index: 2;
-    top: 89.5%;
-    background: none;
-    color: #aeadad;
-    border-radius: none;
-    padding: 8px;
-    outline: none;
-}
-
-#preview-button:hover {
-    border: 1px solid rgb(162 121 0);
-    box-shadow: none;
-}
-
+*/
 
 /* =================== */
 /* Other */
@@ -486,11 +374,11 @@ button:active {transform: translateY(0);}
 /* Modal styles */
 /* =================== */
 #previewModal {
-    position: fixed !important;
+    position: fixed !important;  /* Crucial: Breaks it out of the form container completely */
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    
+    width: 100vw !important;     /* Spans 100% of the entire web browser window width */
+    height: 100vh !important;    /* Spans 100% of the entire web browser window height */
     display: none;
     align-items: center;
     justify-content: center;
@@ -505,7 +393,9 @@ button:active {transform: translateY(0);}
     z-index: 2000;
 }
 
-.modal.open {display: flex;}
+.modal.open {
+    display: flex;
+}
 
 .modal-backdrop {
     position: fixed;
@@ -515,7 +405,7 @@ button:active {transform: translateY(0);}
 
 .modal-content {
     max-width: 95%;
-    max-height: 100vh;
+    max-height: 95%;
     z-index: 2001;
     display: flex;
     align-items: center;
@@ -545,6 +435,18 @@ button:active {transform: translateY(0);}
     display: flex;
     align-items: center;     /* Centers vertically */
     justify-content: center;  /* Centers horizontally */
-    line-height: 1;
+    line-height: 1;          /* Prevents default browser text height skew */
     padding: 0; 
+}
+
+.modal-download {
+    position: absolute;
+    bottom: -36px;
+    right: 0;
+    background: #667eea;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
 }

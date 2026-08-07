@@ -99,9 +99,7 @@ def plot_trad(
             prominence_percentage = helper_utils.NORM_PROM_PERC
         dynamic_prominence = prominence_percentage * (raw_range if raw_range != 0 else 1.0)
         peaks, _ = find_peaks(df_plot_data[helper_utils.INT_col], prominence=dynamic_prominence)
-
-    print(peak_wavelengths)
-    
+   
     peak_nms = [float(df_plot_data.iloc[index][helper_utils.wl_col]) for index in peaks]
     peak_ints = [float(df_plot_data.iloc[index]["Norm_Int"]) for index in peaks]
     init_peak_label_y_posn = peak_label_y_position
@@ -513,6 +511,7 @@ def scatter_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int
 
 
 def bar_iteration(data_df, show_peak_labels, show_label_colour, scale_by_int, reverse_x, title, random_title, show_grid):
+
     fig_bar = go.Figure()
     bar_colors = []
     for index, row in data_df.iterrows():

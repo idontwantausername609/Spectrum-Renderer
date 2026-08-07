@@ -3,6 +3,7 @@
 
 <head>
     <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="../static/plotly-3.6.0.min.js" charset="utf-8"></script>
 </head>
 
@@ -35,8 +36,9 @@
             </div>
 
             <div id="preview-section" class="section hidden">
-                <h2>Previewing First 5 Rows:</h2>
-                <div class="table-container">
+                <span style="font-weight: 600; font-size: 18px; margin-bottom: 6px;" >Previewing First 5 Rows:</span>
+                <button id="data-preview-button" title="Toggle Data Preview" type="button" class="data-preview-button" onclick="tableToggle()">▲</button>
+                <div class="table-container" id="table-container">
                     <table id="preview-table">
                         <thead id="table-head"></thead>
                         <tbody id="table-body"></tbody>
@@ -163,14 +165,20 @@
     <div id="previewModal" class="modal" aria-hidden="true" role="dialog" aria-label="Image preview">
         <div class="modal-backdrop" id="modalBackdrop"></div>
         <div class="modal-content" role="document">
-            <button id="modalClose" class="modal-close" aria-label="Close preview", title="Close preview">✕</button>
-            <img id="modalImage" src="" alt="Preview" />        <!-- will have to remove this line -->
-
             <div id="modalPlotlyChart" style="width: 100%; display: none;"></div>
-            
-            <a id="modalDownload" class="modal-download" download>Download</a>
         </div>
     </div>
+
+    <template id="modebar-toggle-template">
+        <div class="modebar-toggle" title="Toggle Toolbar">☰</div>
+    </template>
+
+    <template id="exit-preview-hint-template">
+        <div class="preview-exit-hint">
+          Press <kbd>Esc</kbd> to exit preview
+        </div>
+      </template>
+      
 </body>
 
 <script src="https://cloudflare.com"></script>

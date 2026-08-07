@@ -2,13 +2,10 @@
 
 //Fullscreen preview modal logic
 const previewModal = document.getElementById('previewModal');
-const modalImage = document.getElementById('modalImage');
-
 const modalChartContainer = document.getElementById('modalPlotlyChart');
-
 const modalClose = document.getElementById('modalClose');
-const modalDownload = document.getElementById('modalDownload');
 const modalBackdrop = document.getElementById('modalBackdrop');
+const mainChart = document.getElementById('mainPlotlyChart');
 
 // File upload and sheet loading
 const fileInput = document.getElementById('file');
@@ -18,6 +15,8 @@ const resultDiv = document.getElementById('result');
 const renderAllCheckbox = document.getElementById('render_all_sheets');
 let availableSheets = [];
 
+const graphType = document.getElementById('graphType').value;
+
 // Global data states
 let globalHeaders = [];
 let intHeaders = [];
@@ -25,23 +24,18 @@ let nmHeaders = [];
 let globalRows = [];
 let rawParsedData = [];
 
-
 let globalChartData = null; 
-
-
-
-
 
 
 // Functions
 
 function toggleScale() {
-    const graphType = document.getElementById('graphType').value;
     const divScale = document.getElementById('divScale');
     const scaleByIntCheckbox = document.getElementById('scale_by_int');
     const showGridCheckbox = document.getElementById('show_grid');
     const checkGroup = document.getElementById('checkGroup');
     const revCheckbox = document.getElementById('reverse_x');
+    const graphType = document.getElementById('graphType').value;
 
     if (!graphType) {
         checkGroup.style.display = 'none';
@@ -114,6 +108,17 @@ function sheetForm() {
 }
 
 
+function tableToggle() {
+    const dataPreview = document.getElementById('preview-section');
+    var dataPreviewButton = document.getElementById('data-preview-button');
+    const table = document.getElementById('table-container');
+
+    table.classList.toggle('hidden');
+
+}
+
+
+
 function loadSheetJS(callback) {
     if (typeof XLSX !== "undefined") {
         callback();
@@ -154,7 +159,6 @@ function parseCSVTo2DArray(text) {
         return result;
     });
 }
-
 
 function processRawData(dataGrid) {
     if (!dataGrid || dataGrid.length === 0) return;
@@ -270,33 +274,6 @@ document.getElementById("has-headers").addEventListener("change", () => {
     }
 });
 
-
-
-
-/*
-function openPreview(src, filename) {
-    modalImage.src = src;
-    modalImage.alt = filename || 'Spectrum preview';
-    modalDownload.href = src;
-    modalDownload.download = filename || 'spectrum.png';
-    previewModal.classList.add('open');
-    previewModal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-}
-
-function closePreview() {
-    previewModal.classList.remove('open');
-    previewModal.setAttribute('aria-hidden', 'true');
-    modalImage.src = '';
-    document.body.style.overflow = '';
-}
-*/
-
-
-
-
-
-
 // Script
 loadSheetJS(() => {
     document
@@ -378,8 +355,8 @@ fileInput.addEventListener('change', async (e) => {
 
     formData.append('int_col', intCol);
     formData.append('nm_col', nmCol);
-    formData.append('graph_type', document.getElementById('graphType').value);        // new line
-    formData.append('show_grid', document.getElementById('show_grid').value);          //
+    formData.append('graph_type', document.getElementById('graphType').value);
+    formData.append('show_grid', document.getElementById('show_grid').value);
     if (document.getElementById('reverse_x').checked) formData.append('reverse_x', 'on');
     if (document.getElementById('graphType').value === 'traditional') {
         formData.append('scale_mode', document.getElementById('scaleMode').value);
@@ -501,8 +478,6 @@ renderForm.addEventListener('submit', async (e) => {
     try {
         const title = document.getElementById('title').value;
         const randomTitle = document.getElementById('random_title').checked;
-
-        // Determine sheets to render
         let selectedSheets = [];
         if (renderAllCheckbox && renderAllCheckbox.checked) {
             selectedSheets = availableSheets.slice();
@@ -539,25 +514,21 @@ renderForm.addEventListener('submit', async (e) => {
             formData.append('nm_col', nmCol);
             if (sheetName) formData.append('sheet', sheetName);
             formData.append('title', title);
-            formData.append('graph_type', document.getElementById('graphType').value);        // new line
+            formData.append('graph_type', document.getElementById('graphType').value);  
             formData.append('scale_mode', document.getElementById('scaleMode').value);
             if (randomTitle) formData.append('random_title', 'on');
             if (document.getElementById('show_peak_labels').checked) formData.append('show_peak_labels', 'on');
             if (document.getElementById('reverse_x').checked) formData.append('reverse_x', 'on');
             if (document.getElementById('show_label_colour').checked) formData.append('show_label_colour', 'on');
-            if (document.getElementById('show_grid').checked) formData.append('show_grid', 'on');       //
-            if (document.getElementById('scale_by_int').checked) formData.append('scale_by_int', 'on');       //
-
-            // ... [Keep all your existing FormData appending code exactly the same] ...
+            if (document.getElementById('show_grid').checked) formData.append('show_grid', 'on');       
+            if (document.getElementById('scale_by_int').checked) formData.append('scale_by_int', 'on');       
 
             const response = await fetch('/api/render', { method: 'POST', body: formData });
             const contentType = response.headers.get('content-type');
 
-            // 1. CHOOSE PROCESSING PATH BASED ON RESPONSE TYPE
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();
-                
-                // Keep your manual detection error handler fallback intact
+
                 if (data.needs_manual_selection) {
                     resultDiv.innerHTML = '<div class="error">Could not auto-detect column headers. Please manually select the wavelength and intensity columns below.</div>';
                     document.getElementById('selector-section').hidden = false;
@@ -570,38 +541,49 @@ renderForm.addEventListener('submit', async (e) => {
                     throw new Error(data.error);
                 }
 
-                // >>> PLOTLY HANDLING PATH <<<
-                // Save the incoming Python data directly to your new global variable tracker
                 globalChartData = data;
 
-                // Instead of an img tag, generate a structured div with a unique ID for Plotly
                 html += '<div class="image-container">' +
                         '<div class="image-label">' + labelSheet + '</div>' +
-                        '<div id="mainPlotlyChart" style="width:100%;"></div>' +
+                        '<div id="mainPlotlyChart" style="width:100%;">' + '<button id="preview-button" type="button" title="Expand to Preview"><i class="fa fa-search-plus"></i></button>' + '</div>' + 
                         '</div>';
 
             } else {
-                // >>> MATPLOTLIB FALLBACK PATH <<<
-                // Keep your original blob code running perfectly if you serve raw files
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 html += '<div class="image-container"><div class="image-label">' + labelSheet + ' </div><img src="' + url + '" alt="Spectrum"></div>';
             }
-        } // End of your for-of sheet loop
+        }
 
-        // 2. Inject the built HTML elements safely into the DOM string
         resultDiv.innerHTML = html;
-
-        // 3. INITIALIZE THE PLOTLY INTERACTIVE CHART
-        // We only do this if globalChartData was successfully captured above
         if (globalChartData && document.getElementById('mainPlotlyChart')) {
             // Unpack your backend configurations cleanly
             const chartData   = Array.isArray(globalChartData.data) ? globalChartData.data : [globalChartData.data];
             const chartLayout = Object.assign({}, globalChartData.layout);
             const chartConfig = Object.assign({}, globalChartData.config);
-
-            // Tell Plotly to draw the primary dashboard interface graph
             Plotly.newPlot('mainPlotlyChart', chartData, chartLayout, chartConfig);
+        }
+
+        var gType = document.getElementById('graphType').value;
+            if (gType === 'traditional') {
+            modalChartContainer.style.maxHeight = '100%';
+            previewModal.style.maxHeight = '100%';
+        }
+        else {
+            modalChartContainer.style.maxHeight = '100vh';
+            previewModal.style.maxHeight = '100vh';
+        }
+
+        const previewButton = document.getElementById('preview-button');
+           if (gType === 'traditional') {
+            previewButton.style.position = 'relative';
+            previewButton.style.marginTop = '10px';
+            previewButton.style.marginBottom = '-5px';
+            previewButton.style.left = '98%';
+        }
+        else {
+            previewButton.style.position = 'absolute';
+            previewButton.style.right = '0.5%';
         }
 
     } catch (error) {
@@ -609,76 +591,97 @@ renderForm.addEventListener('submit', async (e) => {
     }
 });
 
-
 // Fullscreen preview modal logic
 
+let hintTimeout;
 
+function showExitHint() {
+  const hint = document.querySelector('.preview-exit-hint');
+  if (!hint) return;
 
+  clearTimeout(hintTimeout);
+  hint.classList.add('show');
+  hintTimeout = setTimeout(() => {
+    hint.classList.remove('show');
+  }, 3000);
+}
 
-
-
-// Delegate click events on result images
 resultDiv.addEventListener('click', (ev) => {
     const t = ev.target;
-    
-    // Check for standard image tags
-    if (t && t.tagName === 'IMG') {
-        openPreview(t.src, t.alt || 'spectrum.png');
-        return;
+    if (!t) return;
+
+    const previewBtn = t.closest('#preview-button');
+    if (previewBtn) {
+        console.log('Preview button clicked successfully!'); // Debug log
+        
+        const chartExists = document.getElementById('mainPlotlyChart');
+        if (chartExists) {
+            openPlotlyPreview('spectrum.png');
+        } else {
+            console.error('Error: #mainPlotlyChart element not found in DOM.');
+        }
+        return; 
     }
 
-    // Target your main dashboard Plotly container div or any internal SVG children
-    const plotlyContainer = t.closest('.plotly-graph-div') || t.closest('#mainPlotlyChart'); 
-    
-    if (plotlyContainer) {
-        // Open your fullscreen modal using the cloned openPlotlyPreview function we updated
-        openPlotlyPreview('spectrum.png');
+    const imgElement = t.closest('img');
+    if (imgElement) {
+        openPreview(imgElement.src, imgElement.alt || 'spectrum.png');
+        return;
     }
 });
 
-
-// Custom function to open your Plotly interactive modal safely
 function openPlotlyPreview(filename) {
     if (!globalChartData) return;
+    const template = document.getElementById('exit-preview-hint-template');
+    if (template && !document.querySelector('.preview-exit-hint')) {
+      const clone = template.content.cloneNode(true);
+      document.body.appendChild(clone);
+    }
 
     previewModal.classList.add('open');
     previewModal.style.display = 'flex'; 
     previewModal.setAttribute('aria-hidden', 'false');
-
-    modalImage.style.display = 'none';
     modalChartContainer.style.display = 'block';
+
+    showExitHint();
 
     const chartData = Array.isArray(globalChartData.data) ? globalChartData.data : [globalChartData.data];
     const chartLayout = Object.assign({}, globalChartData.layout);
     const chartConfig = globalChartData.config || {};
-
     chartLayout.width = null;
     chartLayout.height = null;
     chartLayout.autosize = true;
 
     Plotly.newPlot('modalPlotlyChart', chartData, chartLayout, chartConfig);
     Plotly.Plots.resize('modalPlotlyChart');
-    Plotly.toImage('modalPlotlyChart', {format: 'png'})
-        .then(function(dataUrl) {
-            modalDownload.href = dataUrl;
-            modalDownload.download = filename;
-        });
 }
 
-
-
-// Update your existing closePreview function slightly to include a purge
 function closePreview() {
     previewModal.classList.remove('open');
     previewModal.style.display = 'none';
     previewModal.setAttribute('aria-hidden', 'true');
-    
-    // Purge the modal chart memory allocation when closed to prevent slowdowns
     Plotly.purge('modalPlotlyChart');
+
+    const hint = document.querySelector('.preview-exit-hint');
+    if (hint) {
+      clearTimeout(hintTimeout);
+      hint.remove();
+    }
 }
 
-// Wire up your close triggers using your existing handlers
-modalClose.addEventListener('click', closePreview);
+document.addEventListener('mousemove', (ev) => {
+    if (previewModal && previewModal.classList.contains('open')) {
+      const windowCenterX = window.innerWidth / 2;
+      const horizontalSensitivity = 200; 
+      const verticalSensitivity = 60;
+      const isNearTopEdge = ev.clientY <= verticalSensitivity;
+      const isCenteredHorizontally = Math.abs(ev.clientX - windowCenterX) <= horizontalSensitivity;
+      if (isNearTopEdge && isCenteredHorizontally) {
+        showExitHint();
+      }
+    }
+  });
+
 modalBackdrop.addEventListener('click', closePreview);
 document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape' && previewModal.classList.contains('open')) {
@@ -686,117 +689,40 @@ document.addEventListener('keydown', (ev) => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const template = document.getElementById('modebar-toggle-template');
+    const observer = new MutationObserver(() => {
+      const charts = document.querySelectorAll('.js-plotly-plot:not(.has-toggle-btn)');
+      charts.forEach(chart => {
+        if (!chart.layout || !template) return;
+        chart.classList.add('has-toggle-btn');
+        const layoutStyle = (chart.layout && chart.layout.meta && chart.layout.meta.modebar_style) || 'shifted';
+        const modebar = chart.querySelector('.modebar');
+        if (layoutStyle === 'vertical') {
+          chart.classList.add('style-vertical-modebar');
+        }
+        const templateContent = template.content.cloneNode(true);
+        const toggleBtn = templateContent.querySelector('.modebar-toggle');
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          chart.classList.toggle('modebar-expanded');
+          const isOpen = chart.classList.contains('modebar-expanded');
+        });
+        chart.style.position = 'relative';
+        chart.appendChild(toggleBtn);
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
 
-const style = document.createElement('style'); 
-style.textContent = ` 
-    /* Keep the default modebar completely hidden/collapsed */ 
-    .js-plotly-plot .plotly .modebar { 
-        opacity: 0 !important; 
-        pointer-events: none !important; 
-        transform: translateX(20px); 
-        transition: all 0.3s ease-in-out !important; 
-    } 
-    /* Expanded state when the single icon is toggled active */ 
-    .js-plotly-plot.modebar-expanded .plotly .modebar { 
-        opacity: 1 !important; 
-        pointer-events: auto !important; 
-    } 
-    /* NEW: Re-aligns internal Plotly row groups into an absolute vertical stack */
-    .js-plotly-plot.style-vertical-modebar .plotly .modebar {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        width: auto !important;
-        background: transparent !important;
-    }
-    
-    /* Forces the internal grouping rows to act as vertical columns */
-    .js-plotly-plot.style-vertical-modebar .plotly .modebar-group {
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 0 !important;
-        margin-bottom: 4px !important; /* Adds a clean gap between buttons */
-    }
-    
-    /* The custom single icon container */ 
-    .plotly-custom-toggle { 
-        position: absolute; 
-        top: 10px; 
-        right: 8px; 
-        z-index: 1001; 
-        background: rgba(0, 0, 0, 0.7); 
-        border-radius: 4px; 
-        width: 25px; 
-        height: 25px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer; 
-        font-size: 16px; 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
-        transition: background 0.2s; 
-        user-select: none; 
-    } 
-    .plotly-custom-toggle:hover { 
-        background: rgba(42, 42, 62, 0.7); 
-    } 
-`; 
-document.head.appendChild(style); 
 
-// 2. Dynamically add the single toggle icon to every Plotly chart on the page 
-document.addEventListener('DOMContentLoaded', () => { 
-    // We use a MutationObserver to catch charts even if they load dynamically 
-    const observer = new MutationObserver(() => { 
-        const charts = document.querySelectorAll('.js-plotly-plot:not(.has-toggle-btn)'); 
-        
-        charts.forEach(chart => { 
-            if (!chart.layout) return;
-            
-            chart.classList.add('has-toggle-btn'); 
-            
-            const layoutStyle = (chart.layout && chart.layout.meta && chart.layout.meta.modebar_style) || 'shifted';
-            const modebar = chart.querySelector('.modebar');
-            
-            // NEW: Flags the chart element wrapper so CSS layout locks the vertical view
-            if (layoutStyle === 'vertical') {
-                chart.classList.add('style-vertical-modebar');
-            }
-            
-            // Create the single collapse/expand icon 
-            const toggleBtn = document.createElement('div'); 
-            toggleBtn.className = 'plotly-custom-toggle'; 
-            toggleBtn.innerHTML = '☰'; 
-            
-            // Handle clicking the single icon 
-            toggleBtn.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                chart.classList.toggle('modebar-expanded'); 
-                
-                const isOpen = chart.classList.contains('modebar-expanded');
-                toggleBtn.innerHTML = isOpen ? '✕' : '☰'; 
-                
-                if (modebar) {
-                    if (isOpen) {
-                        if (layoutStyle === 'vertical') {
-                            // Perfect drop spacing below your close button
-                            modebar.style.setProperty('transform', 'translateY(35px) translateX(-5px)', 'important');
-                        } else {
-                            // Left shift for horizontal bars to clear the close icon
-                            modebar.style.setProperty('transform', 'translateX(-45px)', 'important');
-                        }
-                    } else {
-                        // Reset layout back to default when collapsed
-                        modebar.style.setProperty('transform', 'none', 'important');
-                    }
-                }
-            }); 
-            
-            // Append the button into the chart container wrapper 
-            chart.style.position = 'relative'; 
-            chart.appendChild(toggleBtn); 
-        }); 
-    }); 
-    
-    observer.observe(document.body, { childList: true, subtree: true }); 
+
+
+const dataPreviewButton = document.getElementById('data-preview-button');
+dataPreviewButton.addEventListener('click', function() {
+    if (this.textContent === '▲') {
+        this.textContent = '▼';
+    } else {
+        this.textContent = '▲'
+    }
 });
-
